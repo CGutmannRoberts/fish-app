@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+    <link href="js/nouislider/nouislider.min.css" rel="stylesheet">
+    <script src="js/nouislider/nouislider.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-8" id="mapid" style="height: 500px"></div>
+        <div class="col-4 filters">
+            <div class="row">
+                <div class="col-12">
+                    <h5>Fish Species</h5>
+                </div>
+                <div class="col-6">
+                    <input type="checkbox" value="fish1" name="fish1" class="checkbox-species" id="fish1" checked>
+                    <span>Barbel</span>
+                </div>
+                <div class="col-6">
+                    <input type="checkbox" value="fish2" name="fish2" class="checkbox-species" id="fish2" checked>
+                    <span>Sea Lamprey</span>
+                </div>
+                <div class="col-6">
+                    <input type="checkbox" value="fish3" name="fish3" class="checkbox-species" id="fish3" checked>
+                    <span>Pike</span>
+                </div>
+                <div class="col-6">
+                    <input type="checkbox" value="fish4" name="fish4" class="checkbox-species" id="fish4" checked>
+                    <span>Twaite Shad</span>
+                </div>
+                <div class="col-6">
+                    <input type="checkbox" value="fish5" name="fish5" class="checkbox-species" id="fish5" checked>
+                    <span>Zander</span>
+                </div>
+            </div>
+
+            <div class="row temperature-container margin-top">
+                <h5>Temperature</h5>
+                <div class="noui-slider-container" style="padding: 35px 15px 10px 15px">
+                    <div id="noui-slider-temperature"></div>
+                </div>
+            </div>
+
+            <div class="row flow-container margin-top">
+                <h5>Flow</h5>
+                <div class="noui-slider-container" style="padding: 35px 15px 10px 15px">
+                    <div id="noui-slider-flow"></div>
+                </div>
+            </div>
+
+            <div class="row margin-top">
+                <div class="col-12">
+                    <h5>Weir</h5>
+                </div>
+
+                <div class="col-6">
+                    <input type="checkbox" value="before" name="weir-before" id="weir-before" checked>
+                    <span>Before</span>
+                </div>
+                <div class="col-6">
+                    <input type="checkbox" value="after" name="weir-after" id="weir-after" checked>
+                    <span>After</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row margin-top" style="padding-top: 25px; padding-left: 35px;">
+        <div class="col-6" style="padding-top: 7px;">
+            <div id="noui-slider"></div>
+        </div>
+        <div class="col-1 align-end">
+            <button id="btn-play">Play</button>
+        </div>
+
+        <div class="col-1 align-end">
+            <button id="btn-backwards"><</button>
+            <button id="btn-forwards">></button>
+        </div>
+        <div class="col-2">
+
+        </div>
+
+
+    </div>
+</div>
+
+
+
+
+</body>
+
+<script src="js/MovingMarker.js"></script>
+<script src="js/fishmap.js"></script>
+
+
+</html>

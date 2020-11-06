@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wix Leaflet Map Example</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+        * element that contains the map. */
+        #map {
+            height: 90%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<div id="logger">Logger:</div>
+<script>
+
+    window.onmessage = (event) => {
+        if (event.data) {
+            receiveMessage(event);
+        }
+    }
+
+    window.parent.postMessage("a mensagem", "*");
+
+    let map = L.map('map', {preferCanvas: true}).setView([52.1704, -2.242], 15); //coordinates, zoom
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoibWlndWVsbHVjYXMiLCJhIjoiY2tkZWtpcDF0MjdoNzJ6czhheXo2enI2OSJ9.Hhj3yCPeNed36iOgdut4xw' //change token when in prod
+    }).addTo(map);
+
+
+    function receiveMessage(event) {
+
+        const points = event.data;
+        log(points);
+        for (let i=0;i<points.length;i++) {
+            let marker = L.circleMarker([points[i].Latitude, points[i].Longitude], {radius: 5}).addTo(map);
+            let popup = "<p><b>" + points[i].Transmitter + "</b> (Fish 1)</p>"
+            popup += "<p>Lat: " + points[i].Latitude + " | Lon: " + points[i].Longitude + "</p>";
+            popup += "<p>Temperature: 15º</p>";
+            marker.bindPopup(popup);
+        }
+
+    }
+
+    function log(message){
+        document.getElementById("logger").innerHTML += JSON.stringify(message);
+    }
+</script>
+</body>
+</html>
