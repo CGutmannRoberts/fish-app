@@ -133,3 +133,38 @@ CUSTOM CHECKBOX
     -ms-transform: rotate(45deg);
     transform: rotate(45deg);
 }
+
+/*
+CUSTOM BUTTONS
+ */
+
+.btn-custom {
+    background-color: rgba(127, 204, 247, 1);
+    border: solid rgba(153, 153, 151, 1) 0px;
+    cursor: pointer !important;
+    color: white;
+    -moz-transition: all .2s ease-in;
+    -o-transition: all .2s ease-in;
+    -webkit-transition: all .2s ease-in;
+    transition: all .2s ease-in;
+}
+
+.btn-custom:hover {
+    background-color: rgba(190, 229, 251, 1);
+    border: transparent;
+}
+
+.btn-custom:focus {
+    border: transparent;
+    outline: transparent;
+}
+
+#btn-play {
+    width: 60px;
+    height: 40px;
+}
+
+#btn-forwards, #btn-backwards {
+    width: 40px;
+    height: 40px;
+}
