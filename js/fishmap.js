@@ -13,23 +13,15 @@ var settings = {
         valueFlow: '#value-flow'
     },
 
-    geoPoints: [
-        [51.5097, -0.1124],
-        [51.5096, -0.1042],
-        [51.5093, -0.0967],
-        [51.5076, -0.0879],
-        [51.5077, -0.0798]
-    ],
-
     dataPoints: [],
     filteredDataPoints: [],
 
     filters: {
-        fishSpecies: [true, true, true, true],
-        minTemperature: 10,
-        maxTemperature: 25,
-        minFlow: 25,
-        maxFlow: 75,
+        fishSpecies: [true, true, true, true, true],
+        minTemperature: 0,
+        maxTemperature: 30,
+        minFlow: 0,
+        maxFlow: 500,
         beforeWeir: true,
         afterWeir: true,
     },
@@ -40,7 +32,7 @@ var settings = {
     currentMarker: null,
     smallRadius: 5,
     largeRadius: 10,
-    currentTimestamp: "2015-09-25 00:00:00",
+    currentTimestamp: "2017-09-25 00:00:00",
     currentTimeIncrement: 5,
     timelineTimeOffset: 30,
     markerPlaySpeed: 200,
@@ -54,6 +46,13 @@ var settings = {
 
     fishIcon: null,
     weirDate: "2018-09-21",
+
+    colorBarbel: "#0099cc",
+    colorPike: "#00cc00",
+    colorZander: "#e6e600",
+    colorSeaLamprey: "#e60000",
+    colorShad: "#ff00ff",
+    colorMultiple: "#ff7800",
 
     MS_PER_DAY: 1000 * 60 * 60 * 24
 
@@ -70,8 +69,6 @@ var settings = {
         }).addTo(settings.map);
         //var polyline = L.polyline(settings.geoPoints, {color: 'red'}).addTo(settings.map);
 
-        $(settings.selectors.sliderTimeline).attr('max', settings.geoPoints.length-1);
-
         settings.fishIcon = L.icon({
             iconUrl: 'data/fish1_20x20.png',
             iconAnchor: [10, 10],
@@ -86,42 +83,40 @@ var settings = {
     initEvents: function () {
         $(settings.selectors.btnForwards).on('click', function () {
             let currentDate = new Date(settings.currentTimestamp);
-            currentDate.setDate(currentDate.getDate() + settings.currentTimeIncrement);
+            //currentDate.setDate(currentDate.getDate() + settings.currentTimeIncrement);
+            let newDate = addtoDate(settings.currentTimestamp, (settings.currentTimeIncrement+1));
 
-            if (currentDate > new Date(settings.relativeMaxTime)) {
+            if (newDate > new Date(settings.relativeMaxTime)) {
                 console.log("Reached max");
-                currentDate = new Date(settings.relativeMaxTime);
+                newDate = new Date(settings.relativeMaxTime);
             }
 
-            settings.currentTimestamp = currentDate.toISOString().split("T")[0];
+            settings.currentTimestamp = newDate.toISOString().split("T")[0];
             let slider = document.getElementById('noui-slider');
-            slider.noUiSlider.set([null, currentDate.getTime(), null]);
+            slider.noUiSlider.set([null, newDate.getTime(), null]);
 
             console.log("Clicking forwards. Current timetamp: " + settings.currentTimestamp);
         });
 
         $(settings.selectors.btnBackwards).on('click', function () {
             let currentDate = new Date(settings.currentTimestamp);
-            currentDate.setDate(currentDate.getDate() - settings.currentTimeIncrement);
+            let newDate = addtoDate(settings.currentTimestamp, -(settings.currentTimeIncrement-1));
+            //currentDate.setDate(currentDate.getDate() - settings.currentTimeIncrement);
 
-            if (currentDate < new Date(settings.relativeMinTime)) {
+            if (newDate < new Date(settings.relativeMinTime)) {
                 console.log("Reached min");
-                currentDate = new Date(settings.relativeMinTime);
+                newDate = new Date(settings.relativeMinTime);
             }
 
-            settings.currentTimestamp = currentDate.toISOString().split("T")[0];
+            settings.currentTimestamp = newDate.toISOString().split("T")[0];
             let slider = document.getElementById('noui-slider');
-            slider.noUiSlider.set([null, currentDate.getTime(), null]);
+            slider.noUiSlider.set([null, newDate.getTime(), null]);
 
             console.log("Clicking backwards. Current timetamp: " + settings.currentTimestamp);
         });
 
         $(settings.selectors.btnPlay).on('click', function () {
-            /*settings.dataPoints[settings.currentIndex].marker.setRadius(settings.smallRadius);
 
-            //var myMovingMarker = L.Marker.movingMarker(settings.geoPoints, [2000, 2000, 2000, 2000, 2000]).addTo(settings.map);
-            settings.currentMarker = L.Marker.movingMarker(settings.geoPoints, 5000).addTo(settings.map);
-            settings.currentMarker.start();*/
             settings.playingAnimation = !settings.playingAnimation;
             if (settings.playingAnimation) {
                 $(this).html("Stop");
@@ -132,9 +127,6 @@ var settings = {
                 $(this).html("Play");
                 stopAllAnimations();
             }
-
-
-
         });
 
         settings.map.on('zoomstart', function() {
@@ -151,58 +143,23 @@ var settings = {
 
         //settings.map.on('moveend', placeMarkersInBounds);
 
-
-        /*$(settings.selectors.chkWeirBefore).on('change', function () {
-            //togglePointsByWeir("before", this.checked);
-            settings.filters.beforeWeir = this.checked;
-            applyFilters();
-        });
-
-        $(settings.selectors.chkWeirAfter).on('change', function () {
-            //togglePointsByWeir("after", this.checked);
-            settings.filters.afterWeir = this.checked;
-            applyFilters();
-        });*/
-
-        /*$(settings.selectors.sliderTemperature).slider({
-            range: true,
-            min: 0,
-            max: 30,
-            values: [ 10, 25 ],
-            slide: function( event, ui ) {
-                $(settings.selectors.valueTemperature).val( + ui.values[ 0 ] + " - " + ui.values[ 1 ]);
-                settings.filters.minTemperature = ui.values[0];
-                settings.filters.maxTemperature = ui.values[1];
-                applyFilters();
-            }
-        });
-        $(settings.selectors.valueTemperature).val($(settings.selectors.sliderTemperature).slider("values", 0) +
-            " - " + $(settings.selectors.sliderTemperature).slider("values", 1));
-
-        $(settings.selectors.sliderFlow).slider({
-            range: true,
-            min: 0,
-            max: 100,
-            values: [ 25, 75 ],
-            slide: function( event, ui ) {
-                $(settings.selectors.valueFlow).val( + ui.values[0] + " - " + ui.values[1]);
-                settings.filters.minFlow = ui.values[0];
-                settings.filters.maxFlow = ui.values[1];
-                applyFilters();
-            }
-        });
-        $(settings.selectors.valueFlow).val($(settings.selectors.sliderFlow).slider("values", 0) +
-            " - " + $(settings.selectors.sliderFlow).slider("values", 1));*/
-
-
-        let species = document.getElementsByClassName('checkbox-species');
-
+        let species = $('.checkbox-species');
         for (let i=0; i < species.length; i++) {
-            species[i].onclick = function(){
+            $(species[i]).on('click', function (){
                 settings.filters.fishSpecies[i] = species[i].checked;
                 applyFilters();
-            }
+            });
         }
+
+        $('#weir-before').on('change', function (){
+           settings.filters.beforeWeir = this.checked;
+           applyFilters();
+        });
+
+        $('#weir-after').on('change', function (){
+            settings.filters.afterWeir = this.checked;
+            applyFilters();
+        });
     }
 };
 
@@ -212,9 +169,6 @@ function transformJSON() {
         console.log("JSON being saved");
 
         let allPoints = {};
-        let minTimestamp = "2020-01-01 00:00:00";
-        let maxTimestamp = "0000-01-01 00:00:00";
-
 
         $.each( data, function( key, val ) {
             //TODO: Configure marker here (color, size, etc)
@@ -222,6 +176,7 @@ function transformJSON() {
             let date = dateObj.getFullYear() + "-" + (dateObj.getMonth()+1) + "-" + dateObj.getDate();
 
             if (val.Transmitter in allPoints) {
+                //set min and max dates
                 if (new Date(date).valueOf() < new Date(allPoints[val.Transmitter].minTimestamp).valueOf()) {
                     allPoints[val.Transmitter].minTimestamp = date;
                 }
@@ -230,6 +185,23 @@ function transformJSON() {
                     allPoints[val.Transmitter].maxTimestamp = date;
                 }
 
+                //set min and max temperature
+                if (val.Temp > allPoints[val.Transmitter].maxTemperature) {
+                    allPoints[val.Transmitter].maxTemperature = val.Temp;
+                }
+
+                if (val.Temp < allPoints[val.Transmitter].minFlow) {
+                    allPoints[val.Transmitter].minTemperature = val.Temp;
+                }
+
+                //set min and max flow
+                if (val.flow > allPoints[val.Transmitter].maxFlow) {
+                    allPoints[val.Transmitter].maxFlow = val.flow;
+                }
+
+                if (val.flow < allPoints[val.Transmitter].minFlow) {
+                    allPoints[val.Transmitter].minFlow = val.flow;
+                }
 
                 let found = false;
                 $.each( allPoints[val.Transmitter].geoPoints, function( key2, val2 ) {
@@ -244,8 +216,6 @@ function transformJSON() {
                         val2.ntimes = val2.times.length;
                         found = true;
                     }
-                    //console.log(key);
-                    //console.log(val);
                 });
 
 
@@ -264,14 +234,15 @@ function transformJSON() {
                 }
 
             } else {
-                //if (val.Transmitter !== "A69-1601-38508" && val.Transmitter !== "A69-1601-38509")
-                //    return;
-
                 let newTransmitter = {
                     minTimestamp: date,
                     maxTimestamp: date,
+                    minTemperature: val.Temp,
+                    maxTemperature: val.Temp,
+                    minFlow: val.flow,
+                    maxFlow: val.flow,
                     species: val.Species,
-                    markerColor: "#006300",
+                    markerColor: getTransmitterColor(val.Species),
                     currentGeoPointIndex: 0,
                     geoPoints: []
                 };
@@ -318,43 +289,82 @@ function transformJSON() {
                 data: { data: newjson}
             }).fail(function(request, status, exception) {
                 console.log(exception);
-            })
-                .always(function() { alert("complete post"); });
-
-
-    })
-            .fail(function() { alert("error"); })
-            .always(function() { alert("complete"); });
-}
-
-function applyFilters(){
-    settings.filteredDataPoints = {};
-
-    $.each( settings.dataPoints, function( key, val ) {
-        if (settings.filters.fishSpecies[0] && val.species === "Barbel") {
-            settings.filteredDataPoints[key] = val;
-        }
-
-        if (settings.filters.fishSpecies[1] && val.species === "Sea Lamprey") {
-            settings.filteredDataPoints[key] = val;
-        }
-
-        if (settings.filters.fishSpecies[2] && val.species === "Pike") {
-            settings.filteredDataPoints[key] = val;
-        }
-
-        if (settings.filters.fishSpecies[3] && val.species === "Twaite Shad") {
-            settings.filteredDataPoints[key] = val;
-        }
-
-        if (settings.filters.fishSpecies[4] && val.species === "Zander") {
-            settings.filteredDataPoints[key] = val;
-        }
+            }).always(function() { alert("Complete saving new JSON file"); });
 
 
     });
+}
 
+function applyFilters(){
+    console.log(settings.filteredDataPoints);
+    eraseAllMarkers();
+    settings.filteredDataPoints = {};
+
+    console.log("applying filters");
+    $.each( settings.dataPoints, function( key, val ) {
+
+        let speciesFilter = false;
+        let temperatureFilter = false;
+        let flowFilter = false;
+        let weirFilter = true;
+
+        //SPECIES FILTERS
+
+        if (settings.filters.fishSpecies[0] && val.species === "Barbel") {
+            speciesFilter = true;
+            //settings.filteredDataPoints[key] = val;
+        }
+
+        if (settings.filters.fishSpecies[1] && val.species === "Sea lamprey") {
+            speciesFilter = true;
+            //settings.filteredDataPoints[key] = val;
+        }
+
+        if (settings.filters.fishSpecies[2] && val.species === "Pike") {
+            speciesFilter = true;
+            //settings.filteredDataPoints[key] = val;
+        }
+
+        if (settings.filters.fishSpecies[3] && val.species === "Twaite shad") {
+            speciesFilter = true;
+            //settings.filteredDataPoints[key] = val;
+        }
+
+        if (settings.filters.fishSpecies[4] && val.species === "Zander") {
+            speciesFilter = true;
+            //settings.filteredDataPoints[key] = val;
+        }
+
+        //TEMPERATURE FILTERS
+        if (val.minTemperature >= settings.filters.minTemperature && val.maxTemperature <= settings.filters.maxTemperature) {
+            temperatureFilter = true;
+        }
+
+        //FLOW FILTERS
+        if (val.minFlow >= settings.filters.minFlow && val.maxFlow <= settings.filters.maxFlow) {
+            flowFilter = true;
+        }
+
+        //WEIR FILTERS
+        if (settings.filters.beforeWeir) {
+            //TODO
+        } else {
+
+        }
+
+        if (settings.filters.afterWeir) {
+            //TODO
+        } else {
+
+        }
+
+        if (speciesFilter && temperatureFilter && flowFilter && weirFilter) {
+            settings.filteredDataPoints[key] = val;
+        }
+    });
+    console.log(settings.filteredDataPoints);
     findRelativeMinMax();
+    placeMarkers();
 }
 
 function processArray(items, process) {
@@ -374,7 +384,7 @@ function getJSONData(){
     $.getJSON( "data/saved.json", function( data ) {
     //$.getJSON( "data/barbel.json", function( data ) {
     //$.getJSON( "data/all_data.json", function( data ) {
-        console.log("JSON loaded with success");
+
         var i = 0;
 
         let allPoints = {};
@@ -397,9 +407,10 @@ function getJSONData(){
         });
 
         settings.dataPoints = data;
-        settings.filteredDataPoints = settings.dataPoints;
+        settings.filteredDataPoints = data;
 
-        console.log("Loaded " + Object.keys(allPoints).length + " transmitters");
+        console.log("JSON loaded with success");
+        console.log("Loaded " + Object.keys(settings.filteredDataPoints).length + " transmitters");
         console.log("Absolute min time: " + settings.absoluteMinTime);
         console.log("Absolute max time: " + settings.absoluteMaxTime);
 
@@ -415,8 +426,28 @@ function findRelativeMinMax() {
     settings.relativeMinTime = "9999-01-01 00:00:00";
     settings.relativeMaxTime = "0000-01-01 00:00:00";
 
+    let originalMinTime = settings.relativeMinTime;
+    let originalMaxTime = settings.relativeMaxTime;
+
+    if (!settings.filters.beforeWeir) {
+        settings.relativeMinTime = settings.weirDate;
+    }
+
+    if (!settings.filters.afterWeir) {
+        settings.relativeMaxTime = settings.weirDate;
+    }
+
+    if (!settings.filters.beforeWeir || !settings.filters.afterWeir) {
+        //todo: verify is this is wanted
+        console.log("weir filter");
+        buildTimelineSlider();
+        return;
+    }
+
+
     $.each( settings.filteredDataPoints, function( key, val ) {
         if (new Date(val.minTimestamp) < new Date(settings.relativeMinTime)) {
+            //if (!settings.filters.beforeWeir)
             settings.relativeMinTime = val.minTimestamp;
         }
 
@@ -425,6 +456,10 @@ function findRelativeMinMax() {
         }
     });
 
+    if (settings.relativeMinTime === originalMinTime || settings.relativeMaxTime === originalMaxTime) {
+        console.log("skipping wrong relative time setting");
+        return;
+    }
     console.log("Relative min time: " + settings.relativeMinTime);
     console.log("Relative max time: " + settings.relativeMaxTime);
 
@@ -433,15 +468,14 @@ function findRelativeMinMax() {
 
 function buildTimelineSlider() {
     let slider = document.getElementById('noui-slider');
-    let origins = slider.getElementsByClassName('noUi-origin');
 
     if (slider.noUiSlider) {
-        console.log("setting");
+        console.log("setting timeline slider");
         //origins[0].setAttribute('disabled', false);
         //origins[2].setAttribute('disabled', false);
         slider.noUiSlider.set([new Date(settings.relativeMinTime).getTime(), null, new Date(settings.relativeMaxTime).getTime()]);
     } else {
-        console.log("creating");
+        console.log("creating timeline slider");
         noUiSlider.create(slider, {
             start: [new Date(settings.relativeMinTime).getTime(),new Date(settings.currentTimestamp).getTime(), /*new Date("2016-06-01").getTime(),*/  new Date(settings.relativeMaxTime).getTime()],
             connect: true,
@@ -469,14 +503,16 @@ function buildTimelineSlider() {
         });
 
         slider.noUiSlider.on('update', function( values, handle ) {
-            /*let timestamp = slider.noUiSlider.get()[1];
+            if (!settings.playingAnimation) {
+                let timestamp = slider.noUiSlider.get()[1];
 
-            if (timestamp !== settings.currentTimestamp) {
-                console.log("setting timestamp!");
-                let oldTimestamp = settings.currentTimestamp;
-                settings.currentTimestamp = new Date(timestamp).toISOString().split("T")[0];
-                findCurrentTimeMarkers(oldTimestamp);
-            }*/
+                if (timestamp !== settings.currentTimestamp) {
+                    console.log("setting timestamp!");
+                    let oldTimestamp = settings.currentTimestamp;
+                    settings.currentTimestamp = new Date(timestamp).toISOString().split("T")[0];
+                    findCurrentTimeMarkers(oldTimestamp);
+                }
+            }
         });
 
         /*let connect = slider.querySelectorAll('.noUi-connect');
@@ -518,7 +554,7 @@ function findFirstTimeMarkers() {
             }
 
         });
-        console.log(transmitter_data);
+        //console.log(transmitter_data);
     }
 
     placeMarkers();
@@ -614,6 +650,7 @@ function placeMarker(transmitter_id, transmitter_data) {
             transmitter_data_inner.marker.setPopupContent(popup);
 
             transmitter_data_inner.marker.setRadius(settings.largeRadius);
+            transmitter_data_inner.marker.setStyle({color: settings.colorMultiple});
             enlargedRadius = true;
             break;
         }
@@ -664,6 +701,7 @@ function placeMarkers() {
                 transmitter_data_inner.marker.setPopupContent(popup);
 
                 transmitter_data_inner.marker.setRadius(settings.largeRadius);
+                transmitter_data_inner.marker.setStyle({color: settings.colorMultiple});
                 enlargedRadius = true;
                 break;
             }
@@ -738,10 +776,12 @@ function playAnimationAux(transmitter_id, transmitter_data) {
 
     if (transmitter_data.geoPoints.length <= transmitter_data.currentGeoPointIndex+1) {
         //reached end
-        transmitter_data.marker.remove();
-        transmitter_data.marker = null;
-        console.log(transmitter_id + " reaching end at " + settings.currentTimestamp);
-        return;
+        if (transmitter_data.marker != null) {
+            transmitter_data.marker.remove();
+            transmitter_data.marker = null;
+            console.log(transmitter_id + " reaching end at " + settings.currentTimestamp);
+            return;
+        }
     }
 
     if (settings.playingAnimation) {
@@ -778,6 +818,9 @@ function playAnimationAux(transmitter_id, transmitter_data) {
 
         setTimeout(function(){
             transmitter_data.currentGeoPointIndex++;
+            if (transmitter_data.currentGeoPointIndex >= transmitter_data.geoPoints.length) {
+                transmitter_data.currentGeoPointIndex = transmitter_data.geoPoints.length - 1;
+            }
             //console.log("from general incremented " + transmitter_id + " at " + settings.currentTimestamp);
 
             playAnimationAux(transmitter_id, transmitter_data);
@@ -812,6 +855,9 @@ function playAnimationHours(transmitter_id, transmitter_data) {
 
     setTimeout(function(){
         transmitter_data.currentGeoPointIndex++;
+        if (transmitter_data.currentGeoPointIndex >= transmitter_data.geoPoints.length) {
+            transmitter_data.currentGeoPointIndex = transmitter_data.geoPoints.length - 1;
+        }
         //console.log("from hours incremented " + transmitter_id + " at " + settings.currentTimestamp);
         playAnimationAux(transmitter_id, transmitter_data);
     }, 1000 * settings.timeFactor * diffDays);
@@ -904,9 +950,8 @@ function createTemperatureSlider() {
     let slider = document.getElementById('noui-slider-temperature');
 
     noUiSlider.create(slider, {
-        start: [10, 20],
+        start: [0, 30],
         step: 1,
-
         connect: true,
         tooltips: [true, true],
         behaviour: 'drag',
@@ -923,20 +968,29 @@ function createTemperatureSlider() {
             }
         }
     });
+
+    slider.noUiSlider.on('update', function( values, handle ) {
+        let minTemp = slider.noUiSlider.get()[0];
+        let maxTemp = slider.noUiSlider.get()[1];
+
+        settings.filters.minTemperature = minTemp;
+        settings.filters.maxTemperature = maxTemp;
+        applyFilters();
+    });
 }
 
 function createFlowSlider() {
     let slider = document.getElementById('noui-slider-flow');
 
     noUiSlider.create(slider, {
-        start: [10, 20],
+        start: [0, 500],
         step: 1,
         connect: true,
         tooltips: [true, true],
         behaviour: 'drag',
         range: {
             'min': 0,
-            'max': 30
+            'max': 500
         },
         format: {
             from: function(value) {
@@ -946,6 +1000,15 @@ function createFlowSlider() {
                 return parseInt(value);
             }
         }
+    });
+
+    slider.noUiSlider.on('update', function( values, handle ) {
+        let minFlow = slider.noUiSlider.get()[0];
+        let maxFlow = slider.noUiSlider.get()[1];
+
+        settings.filters.minFlow = minFlow;
+        settings.filters.maxFlow = maxFlow;
+        applyFilters();
     });
 }
 
@@ -1027,6 +1090,30 @@ function mergeTooltips(slider, threshold, separator) {
             }
         });
     });
+}
+
+function getTransmitterColor(species) {
+    switch (species) {
+        case "Pike":
+            return settings.colorPike;
+        case "Sea lamprey":
+            return settings.colorSeaLamprey;
+        case "Barbel":
+            return settings.colorBarbel
+        case "Zander":
+            return settings.colorZander
+        case "Twaite shad":
+            return settings.colorShad;
+    }
+}
+
+function eraseAllMarkers() {
+    for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
+        if (transmitter_data.marker != null) {
+            transmitter_data.marker.remove();
+            transmitter_data.marker = null;
+        }
+    }
 }
 
 behaviours.init();
