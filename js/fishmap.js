@@ -47,10 +47,10 @@ var settings = {
     fishIcon: null,
     weirDate: "2018-09-21",
 
-    colorBarbel: "#0099cc",
-    colorPike: "#00cc00",
-    colorZander: "#e6e600",
-    colorSeaLamprey: "#e60000",
+    colorBarbel: "#e60000",
+    colorPike: "#226426",
+    colorZander: "#000",
+    colorSeaLamprey: "#2b55bf",
     colorShad: "#ff00ff",
     colorMultiple: "#ff7800",
 
@@ -242,7 +242,6 @@ function transformJSON() {
                     minFlow: val.flow,
                     maxFlow: val.flow,
                     species: val.Species,
-                    markerColor: getTransmitterColor(val.Species),
                     currentGeoPointIndex: 0,
                     geoPoints: []
                 };
@@ -489,8 +488,8 @@ function buildTimelineSlider() {
                 // 'to' the formatted value. Receives a number.
                 to: function (value) {
                     var d = new Date(value);
-                    //let date_string = ("0" + d.getDate()).slice(-2) + '/' + ("0" + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear()
-                    let date_string = d.getFullYear() + '/' + ("0" + (d.getMonth() + 1)).slice(-2) + '/' + ("0" + d.getDate()).slice(-2);
+                    let date_string = ("0" + d.getDate()).slice(-2) + '/' + ("0" + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear()
+                    //let date_string = d.getFullYear() + '/' + ("0" + (d.getMonth() + 1)).slice(-2) + '/' + ("0" + d.getDate()).slice(-2);
                     return date_string;
                 },
                 // 'from' the formatted value.
@@ -646,7 +645,7 @@ function placeMarker(transmitter_id, transmitter_data) {
             popup += "<p><b>" + transmitter_data.species + "</b></p>";
             // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
             popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
-            popup += "<p>Temperature: 15º</p>";
+            popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
             transmitter_data_inner.marker.setPopupContent(popup);
 
             transmitter_data_inner.marker.setRadius(settings.largeRadius);
@@ -663,13 +662,13 @@ function placeMarker(transmitter_id, transmitter_data) {
 
     let marker = L.circleMarker(
         [transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon],
-        {radius: settings.smallRadius, color: transmitter_data.markerColor}
+        {radius: settings.smallRadius, color: getTransmitterColor(transmitter_data.species)}
     ).addTo(settings.map);
 
     let popup = "<div style='width: 150px'><p><b>" + transmitter_data.species + "</b></p>";
     //popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
     popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
-    popup += "<p>Temperature: 15º</p></div>";
+    popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
     marker.bindPopup(popup, {maxHeight: 200, maxWidth: 400});
 
     transmitter_data.marker = marker;
@@ -697,7 +696,7 @@ function placeMarkers() {
                 popup += "<p><b>" + transmitter_data.species + "</b></p>";
                 // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
                 popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
-                popup += "<p>Temperature: 15º</p>";
+                popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
                 transmitter_data_inner.marker.setPopupContent(popup);
 
                 transmitter_data_inner.marker.setRadius(settings.largeRadius);
@@ -707,7 +706,6 @@ function placeMarkers() {
             }
         }
 
-
         if (enlargedRadius) {
             console.log("enlarged!");
             continue;
@@ -716,13 +714,13 @@ function placeMarkers() {
         if (transmitter_data.marker == null){
             let marker = L.circleMarker(
                 [transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon],
-                {radius: /*found ? settings.largeRadius :*/ settings.smallRadius, color: transmitter_data.markerColor}
+                {radius: /*found ? settings.largeRadius :*/ settings.smallRadius, color: getTransmitterColor(transmitter_data.species)}
                 ).addTo(settings.map);
 
             let popup = "<p><b>" + transmitter_data.species + "</b></p>";
             // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
             popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
-            popup += "<p>Temperature: 15º</p>";
+            popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
             marker.bindPopup(popup, {maxHeight: 200});
 
             transmitter_data.marker = marker;

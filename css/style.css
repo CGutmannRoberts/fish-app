@@ -27,8 +27,12 @@
     border-radius: 10px !important;
 }
 
+.noui-slider-container {
+    padding: 40px 20px 10px 20px;
+}
+
 .row.margin-top {
-    margin-top: 25px;
+    margin-top: 22px;
 }
 
 .align-end {
@@ -40,6 +44,10 @@
 }
 .leaflet-popup-content {
     width: 160px !important;
+}
+
+.title {
+    padding-bottom: 10px;
 }
 
 
@@ -90,15 +98,15 @@ CUSTOM CHECKBOX
     background-color: #2196F3;
 }
 .checkbox-container.barbel input:checked ~ .checkmark {
-    background-color: #0099cc;
-}
-
-.checkbox-container.sea-lamprey input:checked ~ .checkmark {
     background-color: #e60000;
 }
 
+.checkbox-container.sea-lamprey input:checked ~ .checkmark {
+    background-color: #2b55bf;
+}
+
 .checkbox-container.pike input:checked ~ .checkmark {
-    background-color: #00cc00;
+    background-color: #226426;
 }
 
 .checkbox-container.twaite-shad input:checked ~ .checkmark {
@@ -106,7 +114,7 @@ CUSTOM CHECKBOX
 }
 
 .checkbox-container.zander input:checked ~ .checkmark {
-    background-color: #e6e600;
+    background-color: #000;
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */

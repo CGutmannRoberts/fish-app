@@ -19,14 +19,15 @@
 </head>
 <body>
 
-<div>
+<div class="container">
     <div class="row">
         <div class="col-8" id="mapid" style="height: 500px"></div>
         <div class="col-4 filters">
             <div class="row">
-                <div class="col-12">
+                <div class="col-12 title">
                     <h5>Fish Species</h5>
                 </div>
+
                 <div class="col-6">
                     <label class="checkbox-container barbel">Barbel
                         <input type="checkbox" value="fish1" name="fish1" class="checkbox-species" id="fish1" checked>
@@ -60,21 +61,21 @@
             </div>
 
             <div class="row temperature-container margin-top">
-                <h5>Temperature</h5>
-                <div class="noui-slider-container" style="padding: 35px 15px 10px 15px">
+                <h5 class="title">Temperature (ºC)</h5>
+                <div class="noui-slider-container">
                     <div id="noui-slider-temperature"></div>
                 </div>
             </div>
 
             <div class="row flow-container margin-top">
-                <h5>Flow</h5>
-                <div class="noui-slider-container" style="padding: 35px 15px 10px 15px">
+                <h5 class="title">Flow (m&#179;/s)</h5>
+                <div class="noui-slider-container">
                     <div id="noui-slider-flow"></div>
                 </div>
             </div>
 
             <div class="row margin-top">
-                <div class="col-12">
+                <div class="col-12 title">
                     <h5>Weir</h5>
                 </div>
 
@@ -96,14 +97,14 @@
     </div>
 
     <div class="row margin-top" style="padding-top: 25px; padding-left: 35px;">
-        <div class="col-6" style="padding-top: 7px;">
+        <div class="col-5" style="padding-top: 7px;">
             <div id="noui-slider"></div>
         </div>
         <div class="col-1 align-end">
             <button class="btn-custom" id="btn-play">Play</button>
         </div>
 
-        <div class="col-1 align-end">
+        <div class="col-2 align-end">
             <button class="btn-custom" id="btn-backwards"><</button>
             <button class="btn-custom" id="btn-forwards">></button>
         </div>
