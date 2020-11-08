@@ -87,9 +87,7 @@ var settings = {
     },
     initEvents: function () {
         $(settings.selectors.btnForwards).on('click', function () {
-            let currentDate = new Date(settings.currentTimestamp);
-            //currentDate.setDate(currentDate.getDate() + settings.currentTimeIncrement);
-            let newDate = addtoDate(settings.currentTimestamp, (settings.currentTimeIncrement+1));
+            let newDate = addtoDate(settings.currentTimestamp, settings.currentTimeIncrement);
 
             if (newDate > new Date(settings.relativeMaxTime)) {
                 console.log("Reached max");
@@ -100,13 +98,11 @@ var settings = {
             let slider = document.getElementById('noui-slider');
             slider.noUiSlider.set([null, newDate.getTime(), null]);
 
-            console.log("Clicking forwards. Current timetamp: " + settings.currentTimestamp);
+            //console.log("Clicking forwards. Current timetamp: " + settings.currentTimestamp);
         });
 
         $(settings.selectors.btnBackwards).on('click', function () {
-            let currentDate = new Date(settings.currentTimestamp);
-            let newDate = addtoDate(settings.currentTimestamp, -(settings.currentTimeIncrement-1));
-            //currentDate.setDate(currentDate.getDate() - settings.currentTimeIncrement);
+            let newDate = addtoDate(settings.currentTimestamp, -settings.currentTimeIncrement);
 
             if (newDate < new Date(settings.relativeMinTime)) {
                 console.log("Reached min");
@@ -117,7 +113,7 @@ var settings = {
             let slider = document.getElementById('noui-slider');
             slider.noUiSlider.set([null, newDate.getTime(), null]);
 
-            console.log("Clicking backwards. Current timetamp: " + settings.currentTimestamp);
+            //console.log("Clicking backwards. Current timetamp: " + settings.currentTimestamp);
         });
 
         $(settings.selectors.btnPlay).on('click', function () {
@@ -227,9 +223,7 @@ function transformJSON() {
                         val2.times.push({
                             lat: val.Latitude,
                             lon: val.Longitude,
-                            timestamp: val.Timestamp,
-                            flow: val.flow,
-                            temperature: val.Temp
+                            timestamp: val.Timestamp
                         });
                         val2.ntimes = val2.times.length;
                         found = true;
@@ -243,6 +237,8 @@ function transformJSON() {
                         lon: val.Longitude,
                         timestamp: date,
                         ntimes: 1,
+                        temperature: val.Temp,
+                        flow: val.flow,
                         times: [{
                             lat: val.Latitude,
                             lon: val.Longitude,
@@ -260,6 +256,7 @@ function transformJSON() {
                     minFlow: val.flow,
                     maxFlow: val.flow,
                     species: val.Species,
+                    length: val.Length,
                     currentGeoPointIndex: 0,
                     geoPoints: []
                 };
@@ -269,10 +266,12 @@ function transformJSON() {
                     lon: val.Longitude,
                     timestamp: date,
                     ntimes: 1,
+                    temperature: val.Temp,
+                    flow: val.flow,
                     times: [{
                         lat: val.Latitude,
                         lon: val.Longitude,
-                        timestamp: val.Timestamp
+                        timestamp: val.Timestamp,
                     }]
                 });
 
@@ -299,10 +298,7 @@ function transformJSON() {
                 type: "POST",
                 dataType : 'json',
                 async: false,
-                headers: {
-                    "Content-Length": 41943091,
-                },
-                url: 'http://localhost/Fish-Tracking App/save_json.php',
+                url: 'http://localhost/fish-app/save_json.php',
                 data: { data: newjson}
             }).fail(function(request, status, exception) {
                 console.log(exception);
@@ -313,43 +309,35 @@ function transformJSON() {
 }
 
 function applyFilters(){
-    console.log(settings.filteredDataPoints);
     eraseAllMarkers();
     settings.filteredDataPoints = {};
 
-    console.log("applying filters");
     $.each( settings.dataPoints, function( key, val ) {
 
         let speciesFilter = false;
         let temperatureFilter = false;
         let flowFilter = false;
-        let weirFilter = true;
 
         //SPECIES FILTERS
 
         if (settings.filters.fishSpecies[0] && val.species === "Barbel") {
             speciesFilter = true;
-            //settings.filteredDataPoints[key] = val;
         }
 
         if (settings.filters.fishSpecies[1] && val.species === "Sea lamprey") {
             speciesFilter = true;
-            //settings.filteredDataPoints[key] = val;
         }
 
         if (settings.filters.fishSpecies[2] && val.species === "Pike") {
             speciesFilter = true;
-            //settings.filteredDataPoints[key] = val;
         }
 
         if (settings.filters.fishSpecies[3] && val.species === "Twaite shad") {
             speciesFilter = true;
-            //settings.filteredDataPoints[key] = val;
         }
 
         if (settings.filters.fishSpecies[4] && val.species === "Zander") {
             speciesFilter = true;
-            //settings.filteredDataPoints[key] = val;
         }
 
         //TEMPERATURE FILTERS
@@ -362,43 +350,17 @@ function applyFilters(){
             flowFilter = true;
         }
 
-        //WEIR FILTERS
-        if (settings.filters.beforeWeir) {
-            //TODO
-        } else {
-
-        }
-
-        if (settings.filters.afterWeir) {
-            //TODO
-        } else {
-
-        }
-
-        if (speciesFilter && temperatureFilter && flowFilter && weirFilter) {
+        if (speciesFilter && temperatureFilter && flowFilter) {
             settings.filteredDataPoints[key] = val;
         }
     });
-    console.log(settings.filteredDataPoints);
+
     findRelativeMinMax();
     placeMarkers();
 }
 
-function processArray(items, process) {
-    var todo = items.concat();
-
-    var i=0;
-    setTimeout(function() {
-        process(todo.shift());
-
-        if(todo.length > 0) {
-            setTimeout(arguments.callee, 5);
-        }
-    }, 5);
-}
-
 function getJSONData(){
-    $.getJSON( "data/saved.json", function( data ) {
+    $.getJSON( "data/new_saved.json", function( data ) {
     //$.getJSON( "data/barbel.json", function( data ) {
     //$.getJSON( "data/all_data.json", function( data ) {
 
@@ -454,9 +416,6 @@ function findRelativeMinMax() {
         settings.relativeMaxTime = settings.weirDate;
     }
 
-    console.log("before weir: " + settings.filters.beforeWeir);
-    console.log("after weir: " + settings.filters.afterWeir);
-
     $.each( settings.filteredDataPoints, function( key, val ) {
         if (new Date(val.minTimestamp) < new Date(settings.relativeMinTime) && settings.filters.beforeWeir) {
             settings.relativeMinTime = val.minTimestamp;
@@ -471,8 +430,8 @@ function findRelativeMinMax() {
         console.log("skipping wrong relative time setting");
         return;
     }
-    console.log("Relative min time: " + settings.relativeMinTime);
-    console.log("Relative max time: " + settings.relativeMaxTime);
+    //console.log("Relative min time: " + settings.relativeMinTime);
+    //console.log("Relative max time: " + settings.relativeMaxTime);
 
     buildTimelineSlider();
 }
@@ -518,9 +477,12 @@ function buildTimelineSlider() {
 
                 if (timestamp !== settings.currentTimestamp) {
                     console.log("setting timestamp!");
-                    let momentobj = moment(timestamp, "DD/MM/YYYY");
+                    let dateSplitted = timestamp.split("/");
+                    let dateFormatted = dateSplitted[2] + "/" + dateSplitted[1] + "/" + dateSplitted[0];
+                    console.log("Before split: " + timestamp + " ; after split: " + dateFormatted);
+
                     let oldTimestamp = settings.currentTimestamp;
-                    settings.currentTimestamp = new Date(momentobj.toDate()).toISOString().split("T")[0];
+                    settings.currentTimestamp = dateFormatted;
                     findCurrentTimeMarkers(oldTimestamp);
                 }
             }
@@ -544,13 +506,6 @@ function buildTimelineSlider() {
         handles[2].classList.add("handle-disabled");
 
         mergeTooltips(slider, 15, ' - ');
-    }
-}
-
-function setCurrentTimestamp(newTimestamp) {
-    if (currentDate > new Date(settings.relativeMaxTime)) {
-        console.log("Reached max");
-        currentDate = new Date(settings.relativeMaxTime);
     }
 }
 
@@ -665,11 +620,10 @@ function placeMarker(transmitter_id, transmitter_data) {
             .equals(L.latLng(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon)/*,number*/)) { //can use number to give a small error margin
             let popup = transmitter_data_inner.marker.getPopup().getContent();
             popup += "<p>--------------------------</p>"
-            popup += "<p><b>" + transmitter_data.species + "</b></p>";
-            // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
+            popup += "<p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
             popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
             popup += "<p>Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
-            popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
+            popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow + " m&#179;/s</p>";
             transmitter_data_inner.marker.setPopupContent(popup);
 
             transmitter_data_inner.marker.setRadius(settings.largeRadius);
@@ -689,11 +643,10 @@ function placeMarker(transmitter_id, transmitter_data) {
         {radius: settings.smallRadius, color: getTransmitterColor(transmitter_data.species)}
     ).addTo(settings.map);
 
-    let popup = "<div style='width: 150px'><p><b>" + transmitter_data.species + "</b></p>";
-    //popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
+    let popup = "<div style='width: 150px'><p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
     popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
     popup += "<p>Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
-    popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
+    popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow  + " m&#179;/s</p>";
     marker.bindPopup(popup, {maxHeight: 200, maxWidth: 400});
 
     transmitter_data.marker = marker;
@@ -729,10 +682,9 @@ function placeMarkers() {
                 .equals(L.latLng(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon)/*,number*/)) { //can use number to give a small error margin
                 let popup = transmitter_data_inner.marker.getPopup().getContent();
                 popup += "<p>--------------------------</p>"
-                popup += "<p><b>" + transmitter_data.species + "</b></p>";
-                // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
+                popup += "<p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
                 popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
-                popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
+                popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow + " m&#179;/s</p>";
                 popup += "<p>Starting Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
                 transmitter_data_inner.marker.setPopupContent(popup);
 
@@ -753,11 +705,10 @@ function placeMarkers() {
                 {radius: /*found ? settings.largeRadius :*/ settings.smallRadius, color: getTransmitterColor(transmitter_data.species)}
                 ).addTo(settings.map);
 
-            let popup = "<p><b>" + transmitter_data.species + "</b></p>";
-            // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
+            let popup = "<p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
             popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
             popup += "<p>Starting Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
-            popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
+            popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow + " m&#179;/s</p>";
             marker.bindPopup(popup, {maxHeight: 200});
 
             transmitter_data.marker = marker;
