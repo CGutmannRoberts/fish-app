@@ -715,6 +715,7 @@ function placeMarker(transmitter_id, transmitter_data) {
 }
 
 function placeMarkers() {
+    console.log(settings.filteredDataPoints);
 
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
 
@@ -723,13 +724,23 @@ function placeMarkers() {
             transmitter_data.marker = null;
         }
 
+        let incrementedDate = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, settings.timelineTimeOffset);
+        let decreasedDate = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, -settings.timelineTimeOffset);
+
+        console.log(transmitter_id + " with decreased date: " + decreasedDate.toISOString() + " and increased date: " + incrementedDate.toISOString());
+
+        //transmitter is outside timeline range
+        if (new Date(incrementedDate) < new Date(settings.currentTimestamp) || new Date(decreasedDate) > new Date(settings.currentTimestamp)) {
+            continue;
+        }
+
         let enlargedRadius = false;
         for (const [transmitter_id_inner, transmitter_data_inner] of Object.entries(settings.filteredDataPoints)) {
             if (transmitter_id_inner === transmitter_id) {
                 break;
             }
 
-            if (L.latLng(transmitter_data_inner.geoPoints[transmitter_data_inner.currentGeoPointIndex].lat, transmitter_data_inner.geoPoints[transmitter_data_inner.currentGeoPointIndex].lon)
+            if (transmitter_data_inner.marker != null && L.latLng(transmitter_data_inner.geoPoints[transmitter_data_inner.currentGeoPointIndex].lat, transmitter_data_inner.geoPoints[transmitter_data_inner.currentGeoPointIndex].lon)
                 .equals(L.latLng(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon)/*,number*/)) { //can use number to give a small error margin
                 let popup = transmitter_data_inner.marker.getPopup().getContent();
                 popup += "<p>--------------------------</p>"
@@ -737,6 +748,7 @@ function placeMarkers() {
                 // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
                 popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
                 popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
+                popup += "<p>Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
                 transmitter_data_inner.marker.setPopupContent(popup);
 
                 transmitter_data_inner.marker.setRadius(settings.largeRadius);
@@ -760,6 +772,7 @@ function placeMarkers() {
             let popup = "<p><b>" + transmitter_data.species + "</b></p>";
             // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
             popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
+            popup += "<p>Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
             popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
             marker.bindPopup(popup, {maxHeight: 200});
 
