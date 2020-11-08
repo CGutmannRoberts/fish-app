@@ -28,16 +28,18 @@ var settings = {
 
     map: null,
     centerGeoPoint: [52.1704, -2.242],
+    weirGeoPoint : [52.169761, -2.247113],
     currentIndex: 0,
     currentMarker: null,
     smallRadius: 5,
     largeRadius: 10,
-    currentTimestamp: "2017-09-25 00:00:00",
+    currentTimestamp: "2018-05-25 00:00:00",
     currentTimeIncrement: 5,
     timelineTimeOffset: 30,
     markerPlaySpeed: 200,
     playingAnimation: false,
     timeFactor: 1, //if this is 1, 1 sec = 1 day; if this is 2, 2 sec = 1 day
+    firstTimeIndexSearch: false,
 
     relativeMinTime: "9999-01-01 00:00:00",
     relativeMaxTime: "0000-01-01 00:00:00",
@@ -74,6 +76,9 @@ var settings = {
             iconAnchor: [10, 10],
             popupAnchor: [10, 10]
         });
+
+        let weirMarker = L.marker(settings.weirGeoPoint).addTo(settings.map);
+        weirMarker.bindPopup("<p style='text-align: center'><b>Powick weir</b></p>");
 
         //transformJSON();
         getJSONData();
@@ -151,13 +156,26 @@ var settings = {
             });
         }
 
-        $('#weir-before').on('change', function (){
+        $(settings.selectors.chkWeirBefore).on('change', function (){
            settings.filters.beforeWeir = this.checked;
+
+           //both checkboxes cannot be unchecked at the same time
+           if (!settings.filters.beforeWeir) {
+               settings.filters.afterWeir = true;
+               $(settings.selectors.chkWeirAfter).prop( "checked", true );
+           }
            applyFilters();
         });
 
-        $('#weir-after').on('change', function (){
+        $(settings.selectors.chkWeirAfter).on('change', function (){
             settings.filters.afterWeir = this.checked;
+
+            //both checkboxes cannot be unchecked at the same time
+            if (!settings.filters.afterWeir) {
+                settings.filters.beforeWeir = true;
+                $(settings.selectors.chkWeirBefore).prop( "checked", true );
+            }
+
             applyFilters();
         });
     }
@@ -436,21 +454,15 @@ function findRelativeMinMax() {
         settings.relativeMaxTime = settings.weirDate;
     }
 
-    if (!settings.filters.beforeWeir || !settings.filters.afterWeir) {
-        //todo: verify is this is wanted
-        console.log("weir filter");
-        buildTimelineSlider();
-        return;
-    }
-
+    console.log("before weir: " + settings.filters.beforeWeir);
+    console.log("after weir: " + settings.filters.afterWeir);
 
     $.each( settings.filteredDataPoints, function( key, val ) {
-        if (new Date(val.minTimestamp) < new Date(settings.relativeMinTime)) {
-            //if (!settings.filters.beforeWeir)
+        if (new Date(val.minTimestamp) < new Date(settings.relativeMinTime) && settings.filters.beforeWeir) {
             settings.relativeMinTime = val.minTimestamp;
         }
 
-        if (new Date(val.maxTimestamp) > new Date(settings.relativeMaxTime)) {
+        if (new Date(val.maxTimestamp) > new Date(settings.relativeMaxTime) && settings.filters.afterWeir) {
             settings.relativeMaxTime = val.maxTimestamp;
         }
     });
@@ -495,8 +507,7 @@ function buildTimelineSlider() {
                 // 'from' the formatted value.
                 // Receives a string, should return a number.
                 from: function (value) {
-                    //console.log("from value: " + value)
-                    return Number(value.replace(',-', ''));
+                    return Number(value);
                 }
             }
         });
@@ -507,8 +518,9 @@ function buildTimelineSlider() {
 
                 if (timestamp !== settings.currentTimestamp) {
                     console.log("setting timestamp!");
+                    let momentobj = moment(timestamp, "DD/MM/YYYY");
                     let oldTimestamp = settings.currentTimestamp;
-                    settings.currentTimestamp = new Date(timestamp).toISOString().split("T")[0];
+                    settings.currentTimestamp = new Date(momentobj.toDate()).toISOString().split("T")[0];
                     findCurrentTimeMarkers(oldTimestamp);
                 }
             }
@@ -543,39 +555,64 @@ function setCurrentTimestamp(newTimestamp) {
 }
 
 function findFirstTimeMarkers() {
-    for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
-        let found = false;
-        transmitter_data.geoPoints.forEach(function (item, index) {
-            if (!found && new Date(item.timestamp) > new Date(settings.currentTimestamp)) {
-                settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = index;
-                found = true;
-                return;
-            }
+    settings.firstTimeIndexSearch = true;
 
-        });
-        //console.log(transmitter_data);
+    for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
+
+        //current timestamp is lower than the first date of the transmitter, then current index is the first one
+        if (new Date(settings.currentTimestamp) < new Date(transmitter_data.minTimestamp) ) {
+            settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = 0;
+            //console.log(transmitter_id + " found minimum index = 0 for time " + settings.currentTimestamp);
+            continue;
+        }
+
+        //current timestamp is higher than the last date of the transmitter, then current index is the last one
+        if (new Date(settings.currentTimestamp) > new Date(transmitter_data.maxTimestamp) ) {
+            settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = transmitter_data.geoPoints.length-1;
+            //console.log(transmitter_id + " found maximum index = " + (transmitter_data.geoPoints.length-1) + " for time " + settings.currentTimestamp);
+            continue;
+        }
+
+        for (const [index, item] of transmitter_data.geoPoints.entries()) {
+            if (new Date(item.timestamp) > new Date(settings.currentTimestamp)) {
+                //console.log(transmitter_id + " first set with index = " + index + " at time " + settings.currentTimestamp);
+                settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = index;
+                break;
+            }
+        }
     }
 
     placeMarkers();
 }
 
+/**
+ *
+ * @param oldTimestamp used to know if timeline went forwards or backwards
+ */
 function findCurrentTimeMarkers(oldTimestamp) {
+    if (!settings.firstTimeIndexSearch) {
+        return;
+    }
 
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
         let found = false;
 
-        let incrementedDate = new Date(
+        /*let incrementedDate = new Date(
             new Date(transmitter_data.maxTimestamp).getFullYear(),
             new Date().getMonth(),
             new Date().getDate() + settings.timelineTimeOffset
-        );
+        );*/
 
-        let decreasedDate = new Date(
+        let incrementedDate = addtoDate(transmitter_data.maxTimestamp, settings.timelineTimeOffset);
+        let decreasedDate = addtoDate(transmitter_data.minTimestamp, -settings.timelineTimeOffset);
+        /* new Date(
             new Date(transmitter_data.maxTimestamp).getFullYear(),
             new Date().getMonth(),
             new Date().getDate() + settings.timelineTimeOffset
-        );
+        );*/
 
+
+        //if current date is greater than maxTimestamp + offset or lower than minTimetamp - offset, clear the marker
         if (transmitter_data.marker != null && (new Date(settings.currentTimestamp) > incrementedDate || new Date(settings.currentTimestamp) < decreasedDate)) {
             transmitter_data.marker.remove();
             transmitter_data.marker = null;
@@ -583,12 +620,15 @@ function findCurrentTimeMarkers(oldTimestamp) {
         }
 
         if (new Date(oldTimestamp) > new Date(settings.currentTimestamp)) {     //timeline went back
-            console.log("Previous index = " + settings.filteredDataPoints[transmitter_id].currentGeoPointIndex + " at timestamp = " + settings.currentTimestamp);
+            console.log(transmitter_id + " with previous index = " + settings.filteredDataPoints[transmitter_id].currentGeoPointIndex + " at timestamp = " + settings.currentTimestamp);
             for (let i = settings.filteredDataPoints[transmitter_id].currentGeoPointIndex; i >= 0; i--) {
+                if (transmitter_id === "A69-1601-38515" && new Date(settings.currentTimestamp) <= new Date("2016-10-16")) {
+                    debugger; //see at 16/10/2016
+                }
                 if (!found && new Date(transmitter_data.geoPoints[i].timestamp) < new Date(settings.currentTimestamp)) {
                     settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = i;
                     found = true;
-                    console.log("Found index = " + i + " at timestamp = " + transmitter_data.geoPoints[i].timestamp);
+                    console.log(transmitter_id + " found index = " + i + " at timestamp = " + transmitter_data.geoPoints[i].timestamp);
                     placeMarker(transmitter_id, transmitter_data);
                     break;
                 }
@@ -598,7 +638,7 @@ function findCurrentTimeMarkers(oldTimestamp) {
                 if (!found && new Date(transmitter_data.geoPoints[i].timestamp) > new Date(settings.currentTimestamp)) {
                     settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = i;
                     found = true;
-                    console.log("Found index = " + i + " at timestamp = " + transmitter_data.geoPoints[i].timestamp);
+                    //console.log("Found index = " + i + " at timestamp = " + transmitter_data.geoPoints[i].timestamp);
                     placeMarker(transmitter_id, transmitter_data);
                     break;
                 }
@@ -644,7 +684,7 @@ function placeMarker(transmitter_id, transmitter_data) {
             popup += "<p>--------------------------</p>"
             popup += "<p><b>" + transmitter_data.species + "</b></p>";
             // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
-            popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
+            popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
             popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
             transmitter_data_inner.marker.setPopupContent(popup);
 
@@ -667,7 +707,7 @@ function placeMarker(transmitter_id, transmitter_data) {
 
     let popup = "<div style='width: 150px'><p><b>" + transmitter_data.species + "</b></p>";
     //popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
-    popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
+    popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
     popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
     marker.bindPopup(popup, {maxHeight: 200, maxWidth: 400});
 
@@ -695,7 +735,7 @@ function placeMarkers() {
                 popup += "<p>--------------------------</p>"
                 popup += "<p><b>" + transmitter_data.species + "</b></p>";
                 // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
-                popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
+                popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
                 popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
                 transmitter_data_inner.marker.setPopupContent(popup);
 
@@ -719,7 +759,7 @@ function placeMarkers() {
 
             let popup = "<p><b>" + transmitter_data.species + "</b></p>";
             // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
-            popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
+            popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
             popup += "<p>" + /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].Temp*/ "15ºC - " /*transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow*/ + "50 m&#179;/s</p>";
             marker.bindPopup(popup, {maxHeight: 200});
 
