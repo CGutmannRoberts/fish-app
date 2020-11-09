@@ -36,18 +36,21 @@ var settings = {
     currentTimestamp: "2018-05-25 00:00:00",
     currentTimeIncrement: 5,
     timelineTimeOffset: 30,
-    markerPlaySpeed: 200,
     playingAnimation: false,
-    timeFactor: 1, //if this is 1, 1 sec = 1 day; if this is 2, 2 sec = 1 day
+    timeFactor: 1, //number of seconds for a day to pass in timeline. if this is 1, 1 sec = 1 day; if this is 2, 2 sec = 1 day
     firstTimeIndexSearch: false,
+    weirDate: "2018-09-21",
 
     relativeMinTime: "9999-01-01 00:00:00",
     relativeMaxTime: "0000-01-01 00:00:00",
     absoluteMinTime: "9999-01-01 00:00:00",
     absoluteMaxTime: "0000-01-01 00:00:00",
 
-    fishIcon: null,
-    weirDate: "2018-09-21",
+    iconBarbel: null,
+    iconShad: null,
+    iconZander: null,
+    iconPike: null,
+    iconSeaLamprey: null,
 
     colorBarbel: "#e60000",
     colorPike: "#226426",
@@ -69,10 +72,38 @@ var settings = {
             zoomOffset: -1,
             accessToken: 'pk.eyJ1IjoibWlndWVsbHVjYXMiLCJhIjoiY2tkZWtpcDF0MjdoNzJ6czhheXo2enI2OSJ9.Hhj3yCPeNed36iOgdut4xw' //change token when in prod
         }).addTo(settings.map);
-        //var polyline = L.polyline(settings.geoPoints, {color: 'red'}).addTo(settings.map);
 
-        settings.fishIcon = L.icon({
-            iconUrl: 'data/fish1_20x20.png',
+        settings.iconBarbel = L.icon({
+            iconUrl: 'media/icon_barbel.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [10, 10]
+        });
+
+        settings.iconPike = L.icon({
+            iconUrl: 'media/icon_pike.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [10, 10]
+        });
+
+        settings.iconSeaLamprey = L.icon({
+            iconUrl: 'media/icon_lamprey.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [10, 10]
+        });
+
+        settings.iconShad = L.icon({
+            iconUrl: 'media/icon_shad.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [10, 10]
+        });
+
+        settings.iconZander = L.icon({
+            iconUrl: 'media/icon_zander.png',
+            iconSize: [20, 20],
             iconAnchor: [10, 10],
             popupAnchor: [10, 10]
         });
@@ -87,6 +118,11 @@ var settings = {
     },
     initEvents: function () {
         $(settings.selectors.btnForwards).on('click', function () {
+            //stop animations on click of any button
+            if (settings.playingAnimation) {
+                stopAllAnimations();
+            }
+
             let newDate = addtoDate(settings.currentTimestamp, settings.currentTimeIncrement);
 
             if (newDate > new Date(settings.relativeMaxTime)) {
@@ -102,6 +138,11 @@ var settings = {
         });
 
         $(settings.selectors.btnBackwards).on('click', function () {
+            //stop animations on click of any button
+            if (settings.playingAnimation) {
+                stopAllAnimations();
+            }
+
             let newDate = addtoDate(settings.currentTimestamp, -settings.currentTimeIncrement);
 
             if (newDate < new Date(settings.relativeMinTime)) {
@@ -117,7 +158,6 @@ var settings = {
         });
 
         $(settings.selectors.btnPlay).on('click', function () {
-
             settings.playingAnimation = !settings.playingAnimation;
             if (settings.playingAnimation) {
                 $(this).html("Stop");
@@ -130,7 +170,7 @@ var settings = {
             }
         });
 
-        settings.map.on('zoomstart', function() {
+        /*settings.map.on('zoomstart', function() {
             if (settings.currentMarker){
                 settings.currentMarker.pause();
             }
@@ -140,17 +180,26 @@ var settings = {
             if (settings.currentMarker){
                 settings.currentMarker.start();
             }
-        });
+        });*/
 
         let species = $('.checkbox-species');
         for (let i=0; i < species.length; i++) {
             $(species[i]).on('click', function (){
+                if (settings.playingAnimation) {
+                    stopAllAnimations();
+                }
+
                 settings.filters.fishSpecies[i] = species[i].checked;
                 applyFilters();
             });
         }
 
         $(settings.selectors.chkWeirBefore).on('change', function (){
+            //stop animations on click of any button
+            if (settings.playingAnimation) {
+                stopAllAnimations();
+            }
+
            settings.filters.beforeWeir = this.checked;
 
            //both checkboxes cannot be unchecked at the same time
@@ -162,6 +211,11 @@ var settings = {
         });
 
         $(settings.selectors.chkWeirAfter).on('change', function (){
+            //stop animations on click of any button
+            if (settings.playingAnimation) {
+                stopAllAnimations();
+            }
+
             settings.filters.afterWeir = this.checked;
 
             //both checkboxes cannot be unchecked at the same time
@@ -409,8 +463,6 @@ function findRelativeMinMax() {
         console.log("skipping wrong relative time setting");
         return;
     }
-    //console.log("Relative min time: " + settings.relativeMinTime);
-    //console.log("Relative max time: " + settings.relativeMaxTime);
 
     buildTimelineSlider();
 }
@@ -420,8 +472,6 @@ function buildTimelineSlider() {
 
     if (slider.noUiSlider) {
         console.log("setting timeline slider");
-        //origins[0].setAttribute('disabled', false);
-        //origins[2].setAttribute('disabled', false);
         slider.noUiSlider.set([new Date(settings.relativeMinTime).getTime(), null, new Date(settings.relativeMaxTime).getTime()]);
     } else {
         console.log("creating timeline slider");
@@ -592,13 +642,9 @@ function placeMarker(transmitter_id, transmitter_data) {
         if (transmitter_data_inner.marker != null && L.latLng(transmitter_data_inner.geoPoints[transmitter_data_inner.currentGeoPointIndex].lat, transmitter_data_inner.geoPoints[transmitter_data_inner.currentGeoPointIndex].lon)
             .equals(L.latLng(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon)/*,number*/)) { //can use number to give a small error margin
             let popup = transmitter_data_inner.marker.getPopup().getContent();
-            popup += "<p>--------------------------</p>"
-            popup += "<p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
-            popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
-            popup += "<p>Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
-            popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow + " m&#179;/s</p>";
-            transmitter_data_inner.marker.setPopupContent(popup);
+            let newPopup = buildPopup(popup, transmitter_id, transmitter_data);
 
+            transmitter_data_inner.marker.setPopupContent(newPopup);
             transmitter_data_inner.marker.setRadius(settings.largeRadius);
             transmitter_data_inner.marker.setStyle({color: settings.colorMultiple});
             enlargedRadius = true;
@@ -618,7 +664,6 @@ function placeMarker(transmitter_id, transmitter_data) {
 
     let popup = "<div style='width: 150px'><p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
     popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
-    popup += "<p>Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
     popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow  + " m&#179;/s</p>";
     marker.bindPopup(popup, {maxHeight: 200, maxWidth: 400});
 
@@ -635,8 +680,6 @@ function placeMarkers() {
         let incrementedDate = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, settings.timelineTimeOffset);
         let decreasedDate = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, -settings.timelineTimeOffset);
 
-        //console.log(transmitter_id + " with decreased date: " + decreasedDate.toISOString() + " and increased date: " + incrementedDate.toISOString());
-
         //if transmitter is outside timeline range
         if (new Date(incrementedDate) < new Date(settings.currentTimestamp) || new Date(decreasedDate) > new Date(settings.currentTimestamp)) {
             continue;
@@ -651,13 +694,9 @@ function placeMarkers() {
             if (transmitter_data_inner.marker != null && L.latLng(transmitter_data_inner.geoPoints[transmitter_data_inner.currentGeoPointIndex].lat, transmitter_data_inner.geoPoints[transmitter_data_inner.currentGeoPointIndex].lon)
                 .equals(L.latLng(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon)/*,number*/)) { //can use number to give a small error margin
                 let popup = transmitter_data_inner.marker.getPopup().getContent();
-                popup += "<p>--------------------------</p>"
-                popup += "<p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
-                popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
-                popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow + " m&#179;/s</p>";
-                popup += "<p>Starting Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
-                transmitter_data_inner.marker.setPopupContent(popup);
+                let newPopup = buildPopup(popup, transmitter_id, transmitter_data);
 
+                transmitter_data_inner.marker.setPopupContent(newPopup);
                 transmitter_data_inner.marker.setRadius(settings.largeRadius);
                 transmitter_data_inner.marker.setStyle({color: settings.colorMultiple});
                 enlargedRadius = true;
@@ -672,12 +711,11 @@ function placeMarkers() {
         if (transmitter_data.marker == null){
             let marker = L.circleMarker(
                 [transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon],
-                {radius: /*found ? settings.largeRadius :*/ settings.smallRadius, color: getTransmitterColor(transmitter_data.species)}
+                {radius: settings.smallRadius, color: getTransmitterColor(transmitter_data.species)}
                 ).addTo(settings.map);
 
             let popup = "<p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
             popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
-            popup += "<p>Starting Index: " + transmitter_data.currentGeoPointIndex + " ; Timestamp chosen : " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp + "</p>";
             popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow + " m&#179;/s</p>";
             marker.bindPopup(popup, {maxHeight: 200});
 
@@ -756,12 +794,7 @@ function playAnimationAux(transmitter_id, transmitter_data) {
 
         let speed = diffDays * settings.timeFactor;
 
-
-        let fishIcon = L.icon({
-            iconUrl: 'data/fish1_20x20.png',
-            iconAnchor: [10, 10],
-            popupAnchor: [10, 10]
-        });
+        let fishIcon = getFishIcon(transmitter_data.species);
 
         transmitter_data.marker = L.Marker.movingMarker([transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex], transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex+1]],
             speed * 1000,
@@ -782,13 +815,6 @@ function playAnimationAux(transmitter_id, transmitter_data) {
 }
 
 function playAnimationHours(transmitter_id, transmitter_data) {
-
-    let fishIcon = L.icon({
-        iconUrl: 'data/fish1_20x20.png',
-        iconAnchor: [10, 10],
-        popupAnchor: [10, 10]
-    });
-
     //add transition from last subpoint to next point
     let latlngs = transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].times;
     latlngs.push({
@@ -798,6 +824,8 @@ function playAnimationHours(transmitter_id, transmitter_data) {
 
     let diffDays = dateDiffInDays(new Date(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp),
         new Date(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex+1].timestamp));
+
+    let fishIcon = getFishIcon(transmitter_data.species);
 
     //moving marker automatically calculates difference between each point and divides them in the time span set in the duration field
     transmitter_data.marker = L.Marker.movingMarker(latlngs,
@@ -838,6 +866,9 @@ function advanceTime() {
  * Stops all the animations
  */
 function stopAllAnimations() {
+    settings.playingAnimation = false;
+    $(settings.selectors.btnPlay).html("Play");
+
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
         if (new Date(transmitter_data.maxTimestamp) > new Date(settings.currentTimestamp) &&
             new Date(transmitter_data.minTimestamp) < new Date(settings.currentTimestamp) &&
@@ -905,6 +936,11 @@ function createTemperatureSlider() {
     });
 
     slider.noUiSlider.on('update', function( values, handle ) {
+        //stop animations on click of any button
+        if (settings.playingAnimation) {
+            stopAllAnimations();
+        }
+
         let minTemp = slider.noUiSlider.get()[0];
         let maxTemp = slider.noUiSlider.get()[1];
 
@@ -941,6 +977,11 @@ function createFlowSlider() {
     });
 
     slider.noUiSlider.on('update', function( values, handle ) {
+        //stop animations on click of any button
+        if (settings.playingAnimation) {
+            stopAllAnimations();
+        }
+
         let minFlow = slider.noUiSlider.get()[0];
         let maxFlow = slider.noUiSlider.get()[1];
 
@@ -1074,6 +1115,48 @@ function eraseAllMarkers() {
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
         deleteMarker(transmitter_id, transmitter_data);
     }
+}
+
+/**
+ * Gets to icon corresponding to the fish species
+ *
+ * @param species
+ * @returns {null}
+ */
+function getFishIcon(species) {
+    switch (species) {
+        case "Pike":
+            return settings.iconPike;
+        case "Sea lamprey":
+            return settings.iconSeaLamprey;
+        case "Barbel":
+            return settings.iconBarbel
+        case "Zander":
+            return settings.iconZander
+        case "Twaite shad":
+            return settings.iconShad;
+    }
+}
+
+/**
+ * Adds content to the marker popup
+ *
+ * @param currentContent
+ * @param transmitter_id
+ * @param transmitter_data
+ * @returns new popup content formatted string
+ */
+function buildPopup(currentContent, transmitter_id, transmitter_data) {
+    let index = currentContent.lastIndexOf('<p>');
+    let popup = currentContent.slice(0, index);
+    let commonContent = currentContent.slice(index);
+
+    popup += "<p>--------------------------</p>"
+    popup += "<p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
+    popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
+    popup += commonContent;
+
+    return popup;
 }
 
 behaviours.init();

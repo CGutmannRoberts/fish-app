@@ -28,7 +28,8 @@
 }
 
 .noui-slider-container {
-    padding: 40px 20px 10px 20px;
+    margin-left: 15px;
+    padding: 40px 0px 10px 0px;
 }
 
 .row.margin-top {
@@ -48,6 +49,20 @@
 
 .title {
     padding-bottom: 10px;
+}
+
+@media only screen and (max-width: 767px) {
+    .padding-top-sm {
+        padding-top: 20px;
+    }
+
+    .align-center-sm {
+        text-align: center;
+    }
+
+    .filters {
+        display: none;
+    }
 }
 
 
