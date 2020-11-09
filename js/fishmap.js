@@ -80,7 +80,7 @@ var settings = {
         let weirMarker = L.marker(settings.weirGeoPoint).addTo(settings.map);
         weirMarker.bindPopup("<p style='text-align: center'><b>Powick weir</b></p>");
 
-        //transformJSON();
+        //parseJSON();
         getJSONData();
         createTemperatureSlider();
         createFlowSlider();
@@ -142,8 +142,6 @@ var settings = {
             }
         });
 
-        //settings.map.on('moveend', placeMarkersInBounds);
-
         let species = $('.checkbox-species');
         for (let i=0; i < species.length; i++) {
             $(species[i]).on('click', function (){
@@ -177,9 +175,11 @@ var settings = {
     }
 };
 
-function transformJSON() {
-    //$.getJSON( "data/barbel.json", function( data ) {
-        $.getJSON( "data/all_data.json", function( data ) {
+/**
+ * Transforms the raw json file into one usable for the app. Takes a few seconds to run. Activate this function only if the original json file is modified.
+ */
+function parseJSON() {
+    $.getJSON( "data/raw_data.json", function( data ) {
         console.log("JSON being saved");
 
         let allPoints = {};
@@ -360,19 +360,9 @@ function applyFilters(){
 }
 
 function getJSONData(){
-    $.getJSON( "data/new_saved.json", function( data ) {
-    //$.getJSON( "data/barbel.json", function( data ) {
-    //$.getJSON( "data/all_data.json", function( data ) {
-
-        var i = 0;
-
-        let allPoints = {};
-        let minTimestamp = "2020-01-01 00:00:00";
-        let maxTimestamp = "0000-01-01 00:00:00";
-
-
+    $.getJSON( "data/parsed_data.json", function( data ) {
         $.each( data, function( key, val ) {
-
+            //define absolute date limits
             if (new Date(val.minTimestamp) < new Date(settings.absoluteMinTime)){
                 settings.absoluteMinTime = val.minTimestamp;
             }
@@ -380,24 +370,13 @@ function getJSONData(){
             if (new Date(val.maxTimestamp) > new Date(settings.absoluteMaxTime)){
                 settings.absoluteMaxTime = val.maxTimestamp;
             }
-
-            //destruct obj
-            dateObj = null;
         });
 
         settings.dataPoints = data;
         settings.filteredDataPoints = data;
 
-        console.log("JSON loaded with success");
-        console.log("Loaded " + Object.keys(settings.filteredDataPoints).length + " transmitters");
-        console.log("Absolute min time: " + settings.absoluteMinTime);
-        console.log("Absolute max time: " + settings.absoluteMaxTime);
-
-
-
         findRelativeMinMax();
         findFirstTimeMarkers();
-        //findCurrentTimeMarkers(settings.currentTimestamp);
     });
 }
 
@@ -551,13 +530,7 @@ function findCurrentTimeMarkers(oldTimestamp) {
 
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
 
-        if (transmitter_data.marker != null) {
-            if (transmitter_data.marker instanceof L.Marker.MovingMarker) {
-                transmitter_data.marker.stop();
-            }
-            transmitter_data.marker.remove();
-            transmitter_data.marker = null;
-        }
+        deleteMarker(transmitter_id, transmitter_data);
 
         //current timestamp is lower than the first date of the transmitter, then current index is the first one
         if (new Date(settings.currentTimestamp) < new Date(transmitter_data.minTimestamp) ) {
@@ -657,10 +630,7 @@ function placeMarkers() {
 
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
 
-        if (transmitter_data.marker != null) {
-            transmitter_data.marker.remove();
-            transmitter_data.marker = null;
-        }
+        deleteMarker(transmitter_id, transmitter_data);
 
         let incrementedDate = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, settings.timelineTimeOffset);
         let decreasedDate = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, -settings.timelineTimeOffset);
@@ -730,6 +700,8 @@ function playAnimation() {
             new Date(transmitter_data.minTimestamp) < new Date(settings.currentTimestamp)) {
             playAnimationAux(transmitter_id, transmitter_data);
             continue;
+        } else {
+            deleteMarker(transmitter_id, transmitter_data);
         }
 
         beginDelayedAnimation(transmitter_id, transmitter_data)
@@ -754,23 +726,24 @@ function beginDelayedAnimation(transmitter_id, transmitter_data) {
 
 function playAnimationAux(transmitter_id, transmitter_data) {
 
+    /*if (transmitter_id === "A69-1601-43262") {
+        debugger;
+    }*/
+
     if (transmitter_data.geoPoints.length <= transmitter_data.currentGeoPointIndex+1) {
         //reached end
         if (transmitter_data.marker != null) {
             transmitter_data.marker.remove();
             transmitter_data.marker = null;
-            console.log(transmitter_id + " reaching end at " + settings.currentTimestamp);
-            return;
         }
+        console.log(transmitter_id + " reaching end at " + settings.currentTimestamp);
+        return;
     }
 
     if (settings.playingAnimation) {
 
         //remove current marker
-        if (transmitter_data.marker != null) {
-            transmitter_data.marker.remove();
-            transmitter_data.marker = null;
-        }
+        deleteMarker(transmitter_id, transmitter_data);
 
         //if there is more than one point per day, divide the number of points per one day
         if (transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].ntimes > 1) {
@@ -843,7 +816,9 @@ function playAnimationHours(transmitter_id, transmitter_data) {
     }, 1000 * settings.timeFactor * diffDays);
 }
 
-
+/**
+ * Advances the timeline slider with the speed defined in settings.timeFactor
+ */
 function advanceTime() {
 
     setTimeout(function(){
@@ -859,73 +834,53 @@ function advanceTime() {
     }, settings.timeFactor * 1000);
 }
 
+/**
+ * Stops all the animations
+ */
 function stopAllAnimations() {
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
-
         if (new Date(transmitter_data.maxTimestamp) > new Date(settings.currentTimestamp) &&
             new Date(transmitter_data.minTimestamp) < new Date(settings.currentTimestamp) &&
             transmitter_data.currentGeoPointIndex > 0) {
             transmitter_data.currentGeoPointIndex--;
         }
 
-        placeMarker(transmitter_id, transmitter_data);
-        //place marker in current spot
-        /*let marker = L.circleMarker(
-            [transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lat, transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].lon],
-            {radius: settings.smallRadius, color: transmitter_data.markerColor}
-        ).addTo(settings.map);
-
-        let popup = "<p><b>" + transmitter_data.species + "</b></p>";
-        // popup += "<p>Lat: " + val.Latitude + " | Lon: " + val.Longitude + "</p>";
-        popup += "<p>Transmitter: " + transmitter_id.split("-")[2] + "</p>";
-        popup += "<p>Temperature: 15º</p>";
-        marker.bindPopup(popup, {maxHeight: 200});
-
-        transmitter_data.marker = marker;
-
-        transmitter_data.currentGeoPointIndex--;*/
+        deleteMarker(transmitter_id, transmitter_data);
     }
+
+    placeMarkers();
 }
 
-// a and b are javascript Date objects
+/**
+ * Calculates the difference between two dates. Parameters must be of type Date
+ *
+ * @param a Date
+ * @param b Date
+ * @returns {number}
+ */
 function dateDiffInDays(a, b) {
-    // Discard the time and time-zone information.
     const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
     const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
 
     return Math.floor((utc2 - utc1) / settings.MS_PER_DAY);
 }
 
+/**
+ * Adds a number of days to a given date
+ *
+ * @param date
+ * @param days
+ * @returns {Date}
+ */
 function addtoDate(date, days) {
     let result = new Date(date);
     result.setTime(result.getTime() + days * 24 * 3600 * 1000);
     return result;
 }
 
-
-function placeMarkersInBounds() {
-    var mapBounds = settings.map.getBounds();
-    var count = 0;
-    for (var i = settings.dataPoints.length -1; i >= 0; i--) {
-        var m = settings.dataPoints[i];
-        var shouldBeVisible = mapBounds.contains(settings.dataPoints[i].getLatLng());
-        if (!shouldBeVisible) {
-            m.alreadyVisible = false;
-            settings.map.removeLayer(m);
-        } else if (!m.alreadyVisible && shouldBeVisible) {
-            m.alreadyVisible = true;
-            settings.map.addLayer(m);
-            count++;
-        }
-
-        console.log("count = " + count);
-        /*if (count > 1000){
-            return;
-        }*/
-    }
-}
-
-
+/**
+ * Initiates the temperature slider
+ */
 function createTemperatureSlider() {
     let slider = document.getElementById('noui-slider-temperature');
 
@@ -959,6 +914,9 @@ function createTemperatureSlider() {
     });
 }
 
+/**
+ * Initiates the flow slider
+ */
 function createFlowSlider() {
     let slider = document.getElementById('noui-slider-flow');
 
@@ -1072,6 +1030,12 @@ function mergeTooltips(slider, threshold, separator) {
     });
 }
 
+/**
+ * Gets the fish color based on species
+ *
+ * @param species
+ * @returns {string}
+ */
 function getTransmitterColor(species) {
     switch (species) {
         case "Pike":
@@ -1087,12 +1051,28 @@ function getTransmitterColor(species) {
     }
 }
 
+/**
+ * Delets a single marker
+ *
+ * @param transmitter_id
+ * @param transmitter_data
+ */
+function deleteMarker(transmitter_id, transmitter_data) {
+    if (transmitter_data.marker != null) {
+        if (transmitter_data.marker instanceof L.Marker.MovingMarker) {
+            transmitter_data.marker.stop();
+        }
+        transmitter_data.marker.remove();
+        transmitter_data.marker = null;
+    }
+}
+
+/**
+ * Removes all markers from the filtered points
+ */
 function eraseAllMarkers() {
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
-        if (transmitter_data.marker != null) {
-            transmitter_data.marker.remove();
-            transmitter_data.marker = null;
-        }
+        deleteMarker(transmitter_id, transmitter_data);
     }
 }
 
