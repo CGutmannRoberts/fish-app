@@ -669,7 +669,7 @@ function placeMarker(transmitter_id, transmitter_data) {
 
     let popup = "<div style='width: 150px'><p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
     popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
-    popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow  + " m&#179;/s</p>";
+    popup += "<p>" + parseInt(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature) + " ºC - " + parseInt(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow)  + " m&#179;/s</p>";
     marker.bindPopup(popup, {maxHeight: 200, maxWidth: 400});
 
     transmitter_data.marker = marker;
@@ -721,7 +721,7 @@ function placeMarkers() {
 
             let popup = "<p><b>" + transmitter_data.species + "</b> (" + transmitter_data.length + " cm) </p>";
             popup += "<p>Tag ID: " + transmitter_id.split("-")[2] + "</p>";
-            popup += "<p>" + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature + " ºC - " + transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow + " m&#179;/s</p>";
+            popup += "<p>" + parseInt(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].temperature) + " ºC - " + parseInt(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].flow) + " m&#179;/s</p>";
             marker.bindPopup(popup, {maxHeight: 200});
 
             transmitter_data.marker = marker;
