@@ -108,7 +108,12 @@ var settings = {
             popupAnchor: [10, 10]
         });
 
-        let weirMarker = L.marker(settings.weirGeoPoint).addTo(settings.map);
+        let powick_icon = L.icon({
+            iconUrl: 'media/icon_powick_weir.svg',
+            iconSize: [20, 20]
+        });
+
+        let weirMarker = L.marker(settings.weirGeoPoint, {icon:powick_icon}).addTo(settings.map);
         weirMarker.bindPopup("<p style='text-align: center'><b>Powick weir</b></p>");
 
         //parseJSON();
