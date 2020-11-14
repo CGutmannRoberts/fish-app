@@ -10,7 +10,9 @@ var settings = {
         sliderTemperature: '#slider-temperature',
         valueTemperature: '#value-temperature',
         sliderFlow: '#slider-flow',
-        valueFlow: '#value-flow'
+        valueFlow: '#value-flow',
+        filters: '.filters',
+        mobileFilters: '.mobile-filters'
     },
 
     dataPoints: [],
@@ -114,6 +116,9 @@ var settings = {
         getJSONData();
         createTemperatureSlider();
         createFlowSlider();
+
+        $(window).on("resize", resizeFilters);
+        resizeFilters();
     },
     initEvents: function () {
         $(settings.selectors.btnForwards).on('click', function () {
@@ -533,7 +538,10 @@ function buildTimelineSlider() {
         handles[0].classList.add("handle-disabled");
         handles[2].classList.add("handle-disabled");
 
-        mergeTooltips(slider, 15, ' - ');
+        let tooltips = slider.getElementsByClassName('noUi-tooltip');
+        tooltips[0].classList.add("left-tooltip-adjust");
+
+        mergeTooltips(slider, 35, ' - ');
     }
 }
 
@@ -799,6 +807,7 @@ function playAnimationAux(transmitter_id, transmitter_data) {
             speed * 1000,
             {icon:fishIcon}
         ).addTo(settings.map);
+        //$(transmitter_data.marker).addClass('mirrored-marker');
         transmitter_data.marker.start();
 
         setTimeout(function(){
@@ -1199,6 +1208,57 @@ function placeWeirMarkers() {
 
     let stanchardsPitWeirMarker = L.marker([51.99837, -2.15561]).addTo(settings.map);
     stanchardsPitWeirMarker.bindPopup("<p style='text-align: center'><b>Stanchards Pit weir</b></p>");
+}
+
+function getMovingMarkerIcon(current_icon, mirrored) {
+    let intermediate = current_icon.split("_");
+    intermediate = intermediate[intermediate.length-1];
+    let species = intermediate.split(".")[0];
+
+    switch (species) {
+        case "shad":
+            if (mirrored) {
+                return "media/icon_mirror_shad.png"
+            } else {
+                return "media/icon_shad.png"
+            }
+        case "pike":
+            if (mirrored) {
+                return "media/icon_mirror_pike.png"
+            } else {
+                return "media/icon_pike.png"
+            }
+        case "zander":
+            if (mirrored) {
+                return "media/icon_mirror_zander.png"
+            } else {
+                return "media/icon_zander.png"
+            }
+        case "barbel":
+            if (mirrored) {
+                return "media/icon_mirror_barbel.png"
+            } else {
+                return "media/icon_barbel.png"
+            }
+        case "lamprey":
+            if (mirrored) {
+                return "media/icon_mirror_lamprey.png"
+            } else {
+                return "media/icon_lamprey.png"
+            }
+    }
+}
+
+/**
+ * Moves the filters to be under the timeline in small screens
+ */
+function resizeFilters() {
+    if ( $(window).width() < 767) {
+        $(settings.selectors.filters).children().appendTo(".mobile-filters");
+    }
+    else {
+        $(settings.selectors.mobileFilters).children().appendTo(".filters");
+    }
 }
 
 behaviours.init();

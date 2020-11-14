@@ -21,7 +21,7 @@
 
 <div class="container custom-width">
     <div class="row">
-        <div class="col-12 col-md-8" id="mapid" style="height: 500px"></div>
+        <div class="col-12 col-md-8" id="mapid"></div>
         <div class="col-md-4 filters">
             <div class="row">
                 <div class="col-12 title">
@@ -60,14 +60,14 @@
                 </div>
             </div>
 
-            <div class="row temperature-container margin-top">
+            <div class="row temperature-container margin-top col-6 col-md-12">
                 <h5 class="title">Temperature (ºC)</h5>
                 <div class="noui-slider-container">
                     <div id="noui-slider-temperature"></div>
                 </div>
             </div>
 
-            <div class="row flow-container margin-top">
+            <div class="row flow-container margin-top col-6 col-md-12">
                 <h5 class="title">Flow (m&#179;/s)</h5>
                 <div class="noui-slider-container">
                     <div id="noui-slider-flow"></div>
@@ -96,11 +96,11 @@
         </div>
     </div>
 
-    <div class="row margin-top" style="padding-top: 25px;">
-        <div class="col-md-5 col-12" style="padding-top: 7px;">
+    <div class="row time-control-container">
+        <div class="col-md-4 col-12" style="padding-top: 10px;">
             <div id="noui-slider"></div>
         </div>
-        <div class="col-md-1 col-6 col-xs-6 align-end align-center-sm padding-top-sm">
+        <div class="col-md-2 col-6 col-xs-6 align-end align-center-sm padding-top-sm">
             <button class="btn-custom" id="btn-play">Play</button>
         </div>
 
@@ -112,6 +112,10 @@
 
         </div>
 
+
+    </div>
+
+    <div class="row col-12 mobile-filters">
 
     </div>
 </div>

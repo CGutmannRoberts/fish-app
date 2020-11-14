@@ -55,6 +55,18 @@
     max-width: 910px !important;
 }
 
+#mapid {
+    height: 500px;
+}
+
+.time-control-container {
+    padding-left: 25px;
+}
+
+.left-tooltip-adjust {
+    right: -35% !important;
+}
+
 @media only screen and (max-width: 767px) {
     .padding-top-sm {
         padding-top: 20px;
@@ -67,7 +79,26 @@
     .filters {
         display: none;
     }
+
+    #mapid {
+        height: 300px;
+    }
+
+    .time-control-container {
+        padding: 35px;
+        margin-top: 10px !important;
+    }
+
+    .temperature-container {
+        padding-right: 30px !important;
+    }
 }
+
+/*.leaflet-marker-icon.mirrored-marker {
+    -moz-transform: scaleX(-1) !important;
+    -webkit-transform: scaleX(-1) !important;
+    transform: scaleX(-1) !important;
+}*/
 
 
 /*
