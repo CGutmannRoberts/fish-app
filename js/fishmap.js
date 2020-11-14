@@ -108,13 +108,7 @@ var settings = {
             popupAnchor: [10, 10]
         });
 
-        let powick_icon = L.icon({
-            iconUrl: 'media/icon_powick_weir.svg',
-            iconSize: [20, 20]
-        });
-
-        let weirMarker = L.marker(settings.weirGeoPoint, {icon:powick_icon}).addTo(settings.map);
-        weirMarker.bindPopup("<p style='text-align: center'><b>Powick weir</b></p>");
+        placeWeirMarkers();
 
         //parseJSON();
         getJSONData();
@@ -1162,6 +1156,49 @@ function buildPopup(currentContent, transmitter_id, transmitter_data) {
     popup += commonContent;
 
     return popup;
+}
+
+/**
+ * Places all static weir markers on the map. Powick weir has a different icon
+ */
+function placeWeirMarkers() {
+    let powick_icon = L.icon({
+        iconUrl: 'media/icon_powick_weir.svg',
+        iconSize: [20, 20]
+    });
+
+    let powickWeirMarker = L.marker(settings.weirGeoPoint, {icon:powick_icon}).addTo(settings.map);
+    powickWeirMarker.bindPopup("<p style='text-align: center'><b>Powick weir</b></p>");
+
+    let maisemoreWeirMarker = L.marker([51.89318, -2.26574]).addTo(settings.map);
+    maisemoreWeirMarker.bindPopup("<p style='text-align: center'><b>Maisemore weir</b></p>");
+
+    let llanthonyWeirMarker = L.marker([51.86227, -2.26028]).addTo(settings.map);
+    llanthonyWeirMarker.bindPopup("<p style='text-align: center'><b>Llanthony weir</b></p>");
+
+    let upperLodeWeirMarker = L.marker([51.89318, -2.26574]).addTo(settings.map);
+    upperLodeWeirMarker.bindPopup("<p style='text-align: center'><b>Upper Lode weir</b></p>");
+
+    let diglisWeirMarker = L.marker([52.17926, -2.22597]).addTo(settings.map);
+    diglisWeirMarker.bindPopup("<p style='text-align: center'><b>Diglis weir</b></p>");
+
+    let bevereWeirMarker = L.marker([52.23256, -2.24027]).addTo(settings.map);
+    bevereWeirMarker.bindPopup("<p style='text-align: center'><b>Bevere weir</b></p>");
+
+    let holtWeirMarker = L.marker([52.26812, -2.26576]).addTo(settings.map);
+    holtWeirMarker.bindPopup("<p style='text-align: center'><b>Holt weir</b></p>");
+
+    let lincombWeirMarker = L.marker([52.32290, -2.26596]).addTo(settings.map);
+    lincombWeirMarker.bindPopup("<p style='text-align: center'><b>Lincomb weir</b></p>");
+
+    let knightwickWeirMarker = L.marker([52.19908, -2.38940]).addTo(settings.map);
+    knightwickWeirMarker.bindPopup("<p style='text-align: center'><b>Knightwick weir</b></p>");
+
+    let abbeyMillWeirMarker = L.marker([51.99133, -2.16325]).addTo(settings.map);
+    abbeyMillWeirMarker.bindPopup("<p style='text-align: center'><b>Abbey Mill weir</b></p>");
+
+    let stanchardsPitWeirMarker = L.marker([51.99837, -2.15561]).addTo(settings.map);
+    stanchardsPitWeirMarker.bindPopup("<p style='text-align: center'><b>Stanchards Pit weir</b></p>");
 }
 
 behaviours.init();
