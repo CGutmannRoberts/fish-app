@@ -1215,38 +1215,53 @@ function getMovingMarkerIcon(current_icon, mirrored) {
     intermediate = intermediate[intermediate.length-1];
     let species = intermediate.split(".")[0];
 
+    let iconURL = "";
+
     switch (species) {
         case "shad":
             if (mirrored) {
-                return "media/icon_mirror_shad.png"
+                iconURL = "media/icon_mirror_shad.png"
             } else {
-                return "media/icon_shad.png"
+                iconURL = "media/icon_shad.png"
             }
+            break;
         case "pike":
             if (mirrored) {
-                return "media/icon_mirror_pike.png"
+                iconURL = "media/icon_mirror_pike.png"
             } else {
-                return "media/icon_pike.png"
+                iconURL = "media/icon_pike.png"
             }
+            break;
         case "zander":
             if (mirrored) {
-                return "media/icon_mirror_zander.png"
+                iconURL = "media/icon_mirror_zander.png"
             } else {
-                return "media/icon_zander.png"
+                iconURL = "media/icon_zander.png"
             }
+            break;
         case "barbel":
             if (mirrored) {
-                return "media/icon_mirror_barbel.png"
+                iconURL = "media/icon_mirror_barbel.png"
             } else {
-                return "media/icon_barbel.png"
+                iconURL = "media/icon_barbel.png"
             }
+            break;
         case "lamprey":
             if (mirrored) {
-                return "media/icon_mirror_lamprey.png"
+                iconURL = "media/icon_mirror_lamprey.png"
             } else {
-                return "media/icon_lamprey.png"
+                iconURL = "media/icon_lamprey.png"
             }
+            break;
     }
+
+    let icon = L.icon({
+        iconUrl: iconURL,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [10, 10]
+    });
+    return icon;
 }
 
 /**

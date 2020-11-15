@@ -212,6 +212,12 @@ L.Marker.MovingMarker = L.Marker.extend({
         this._currentIndex = index;
         this._currentDuration = this._durations[index];
         this._currentLine = this._latlngs.slice(index, index + 2);
+
+        if (this._latlngs[index].lng - this._latlngs[index+1].lng > 0) {
+            this.setIcon(getMovingMarkerIcon(this.getIcon().options.iconUrl, false));
+        } else {
+            this.setIcon(getMovingMarkerIcon(this.getIcon().options.iconUrl, true));
+        }
     },
 
     /**
