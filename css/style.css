@@ -92,6 +92,10 @@
     .temperature-container {
         padding-right: 30px !important;
     }
+
+    .title {
+        font-size: 18px;
+    }
 }
 
 /*.leaflet-marker-icon.mirrored-marker {
