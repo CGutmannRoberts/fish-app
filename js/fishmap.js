@@ -736,30 +736,38 @@ function placeMarkers() {
 }
 
 function playAnimation() {
-
     advanceTime();
-    console.log(settings.filteredDataPoints);
+    //console.log(settings.filteredDataPoints);
 
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
-        if (new Date(transmitter_data.maxTimestamp) > new Date(settings.currentTimestamp) &&
-            new Date(transmitter_data.minTimestamp) < new Date(settings.currentTimestamp)) {
-            playAnimationAux(transmitter_id, transmitter_data);
-            continue;
-        } else {
-            deleteMarker(transmitter_id, transmitter_data);
-        }
+        //if (transmitter_id === "A69-1602-26317") {
+            if (new Date(transmitter_data.maxTimestamp) > new Date(settings.currentTimestamp) &&
+                new Date(transmitter_data.minTimestamp) < new Date(settings.currentTimestamp)) {
+                playAnimationAux(transmitter_id, transmitter_data);
+                continue;
+            } else {
+                deleteMarker(transmitter_id, transmitter_data);
+            }
 
-        beginDelayedAnimation(transmitter_id, transmitter_data)
+            beginDelayedAnimation(transmitter_id, transmitter_data)
+       // }
     }
 }
 
 function beginDelayedAnimation(transmitter_id, transmitter_data) {
     if (settings.playingAnimation) {
         if (new Date(transmitter_data.maxTimestamp) > new Date(settings.currentTimestamp) &&
-            new Date(transmitter_data.minTimestamp) < new Date(settings.currentTimestamp)) {
-            console.log(transmitter_id + " now beginning animation after delay at " + settings.currentTimestamp);
-            playAnimationAux(transmitter_id, transmitter_data);
-            return;
+            new Date(transmitter_data.minTimestamp) < new Date(settings.currentTimestamp) &&
+            transmitter_data.geoPoints.length <= transmitter_data.currentGeoPointIndex+1) {
+
+            let dateForward = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex+1].timestamp, settings.timelineTimeOffset);
+            let dateBackwards = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex+1].timestamp, -settings.timelineTimeOffset);
+
+            if (new Date(dateForward) > new Date(settings.currentTimestamp) && new Date(dateBackwards) < new Date(settings.currentTimestamp)) {
+                //console.log(transmitter_id + " now beginning animation after delay at " + settings.currentTimestamp);
+                playAnimationAux(transmitter_id, transmitter_data);
+                return;
+            }
         }
 
         setTimeout(function(){
@@ -781,7 +789,16 @@ function playAnimationAux(transmitter_id, transmitter_data) {
             transmitter_data.marker.remove();
             transmitter_data.marker = null;
         }
-        console.log(transmitter_id + " reaching end at " + settings.currentTimestamp);
+        //console.log(transmitter_id + " reaching end at " + settings.currentTimestamp);
+        return;
+    }
+
+    let dateForward = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, settings.timelineTimeOffset);
+    let dateBackwards = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, -settings.timelineTimeOffset);
+
+    if (new Date(dateForward) < new Date(settings.currentTimestamp) || new Date(dateBackwards) > new Date(settings.currentTimestamp)) {
+        deleteMarker(transmitter_id, transmitter_data);
+        beginDelayedAnimation(transmitter_id, transmitter_data);
         return;
     }
 
@@ -807,7 +824,7 @@ function playAnimationAux(transmitter_id, transmitter_data) {
             speed * 1000,
             {icon:fishIcon}
         ).addTo(settings.map);
-        //$(transmitter_data.marker).addClass('mirrored-marker');
+
         transmitter_data.marker.start();
 
         setTimeout(function(){
@@ -832,6 +849,12 @@ function playAnimationHours(transmitter_id, transmitter_data) {
 
     let diffDays = dateDiffInDays(new Date(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp),
         new Date(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex+1].timestamp));
+
+    if (diffDays > settings.timelineTimeOffset) {
+        deleteMarker(transmitter_id, transmitter_data);
+        beginDelayedAnimation(transmitter_id, transmitter_data);
+        return;
+    }
 
     let fishIcon = getFishIcon(transmitter_data.species);
 
