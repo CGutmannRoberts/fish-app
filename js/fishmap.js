@@ -77,37 +77,37 @@ var settings = {
 
         settings.iconBarbel = L.icon({
             iconUrl: 'media/icon_barbel.png',
-            iconSize: [30, 20],
-            iconAnchor: [15, 10],
-            popupAnchor: [15, 10]
+            iconSize: [40, 20],
+            iconAnchor: [20, 10],
+            popupAnchor: [20, 10]
         });
 
         settings.iconPike = L.icon({
             iconUrl: 'media/icon_pike.png',
-            iconSize: [30, 20],
-            iconAnchor: [15, 10],
-            popupAnchor: [15, 10]
+            iconSize: [40, 20],
+            iconAnchor: [20, 10],
+            popupAnchor: [20, 10]
         });
 
         settings.iconSeaLamprey = L.icon({
             iconUrl: 'media/icon_lamprey.png',
-            iconSize: [30, 20],
-            iconAnchor: [15, 10],
-            popupAnchor: [15, 10]
+            iconSize: [40, 20],
+            iconAnchor: [20, 10],
+            popupAnchor: [20, 10]
         });
 
         settings.iconShad = L.icon({
             iconUrl: 'media/icon_shad.png',
-            iconSize: [30, 20],
-            iconAnchor: [15, 10],
-            popupAnchor: [15, 10]
+            iconSize: [40, 20],
+            iconAnchor: [20, 10],
+            popupAnchor: [20, 10]
         });
 
         settings.iconZander = L.icon({
             iconUrl: 'media/icon_zander.png',
-            iconSize: [30, 20],
-            iconAnchor: [15, 10],
-            popupAnchor: [15, 10]
+            iconSize: [40, 20],
+            iconAnchor: [20, 10],
+            popupAnchor: [20, 10]
         });
 
         placeWeirMarkers();
@@ -1280,9 +1280,9 @@ function getMovingMarkerIcon(current_icon, mirrored) {
 
     let icon = L.icon({
         iconUrl: iconURL,
-        iconSize: [30, 20],
-        iconAnchor: [15, 10],
-        popupAnchor: [15, 10]
+        iconSize: [40, 20],
+        iconAnchor: [20, 10],
+        popupAnchor: [20, 10]
     });
     return icon;
 }
