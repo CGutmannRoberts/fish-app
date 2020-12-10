@@ -67,6 +67,10 @@
     right: -35% !important;
 }
 
+.z-index-low {
+    z-index: 0 !important;
+}
+
 @media only screen and (max-width: 767px) {
     .padding-top-sm {
         padding-top: 20px;

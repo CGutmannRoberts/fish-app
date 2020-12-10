@@ -541,7 +541,9 @@ function buildTimelineSlider() {
         let tooltips = slider.getElementsByClassName('noUi-tooltip');
         tooltips[0].classList.add("left-tooltip-adjust");
 
-        mergeTooltips(slider, 35, ' - ');
+        origins[0].classList.add("z-index-low");
+
+        mergeTooltips(slider, 40, ' - ');
     }
 }
 
