@@ -130,7 +130,6 @@ var settings = {
             let newDate = addtoDate(settings.currentTimestamp, settings.currentTimeIncrement);
 
             if (newDate > new Date(settings.relativeMaxTime)) {
-                console.log("Reached max");
                 newDate = new Date(settings.relativeMaxTime);
             }
 
@@ -138,7 +137,6 @@ var settings = {
             let slider = document.getElementById('noui-slider');
             slider.noUiSlider.set([null, newDate.getTime(), null]);
 
-            //console.log("Clicking forwards. Current timetamp: " + settings.currentTimestamp);
         });
 
         $(settings.selectors.btnBackwards).on('click', function () {
@@ -150,7 +148,6 @@ var settings = {
             let newDate = addtoDate(settings.currentTimestamp, -settings.currentTimeIncrement);
 
             if (newDate < new Date(settings.relativeMinTime)) {
-                console.log("Reached min");
                 newDate = new Date(settings.relativeMinTime);
             }
 
@@ -158,18 +155,14 @@ var settings = {
             let slider = document.getElementById('noui-slider');
             slider.noUiSlider.set([null, newDate.getTime(), null]);
             slider.noUiSlider.set([null, newDate.getTime(), null]);
-
-            //console.log("Clicking backwards. Current timetamp: " + settings.currentTimestamp);
         });
 
         $(settings.selectors.btnPlay).on('click', function () {
             settings.playingAnimation = !settings.playingAnimation;
             if (settings.playingAnimation) {
                 $(this).html("Stop");
-                console.log("Playing!");
                 playAnimation();
             } else {
-                console.log("Stopping!");
                 $(this).html("Play");
                 stopAllAnimations();
             }
@@ -465,7 +458,6 @@ function findRelativeMinMax() {
     });
 
     if (settings.relativeMinTime === originalMinTime || settings.relativeMaxTime === originalMaxTime) {
-        console.log("skipping wrong relative time setting");
         return;
     }
 
@@ -476,10 +468,8 @@ function buildTimelineSlider() {
     let slider = document.getElementById('noui-slider');
 
     if (slider.noUiSlider) {
-        console.log("setting timeline slider");
         slider.noUiSlider.set([new Date(settings.relativeMinTime).getTime(), null, new Date(settings.relativeMaxTime).getTime()]);
     } else {
-        console.log("creating timeline slider");
         noUiSlider.create(slider, {
             start: [new Date(settings.relativeMinTime).getTime(),new Date(settings.currentTimestamp).getTime(), /*new Date("2016-06-01").getTime(),*/  new Date(settings.relativeMaxTime).getTime()],
             connect: true,
@@ -510,10 +500,8 @@ function buildTimelineSlider() {
                 let timestamp = slider.noUiSlider.get()[1];
 
                 if (timestamp !== settings.currentTimestamp) {
-                    console.log("setting timestamp!");
                     let dateSplitted = timestamp.split("/");
                     let dateFormatted = dateSplitted[2] + "/" + dateSplitted[1] + "/" + dateSplitted[0];
-                    console.log("Before split: " + timestamp + " ; after split: " + dateFormatted);
 
                     let oldTimestamp = settings.currentTimestamp;
                     settings.currentTimestamp = dateFormatted;
@@ -556,20 +544,17 @@ function findFirstTimeMarkers() {
         //current timestamp is lower than the first date of the transmitter, then current index is the first one
         if (new Date(settings.currentTimestamp) < new Date(transmitter_data.minTimestamp) ) {
             settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = 0;
-            //console.log(transmitter_id + " found minimum index = 0 for time " + settings.currentTimestamp);
             continue;
         }
 
         //current timestamp is higher than the last date of the transmitter, then current index is the last one
         if (new Date(settings.currentTimestamp) > new Date(transmitter_data.maxTimestamp) ) {
             settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = transmitter_data.geoPoints.length-1;
-            //console.log(transmitter_id + " found maximum index = " + (transmitter_data.geoPoints.length-1) + " for time " + settings.currentTimestamp);
             continue;
         }
 
         for (const [index, item] of transmitter_data.geoPoints.entries()) {
             if (new Date(item.timestamp) > new Date(settings.currentTimestamp)) {
-                //console.log(transmitter_id + " first set with index = " + index + " at time " + settings.currentTimestamp);
                 settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = index;
                 break;
             }
@@ -595,23 +580,19 @@ function findCurrentTimeMarkers(oldTimestamp) {
         //current timestamp is lower than the first date of the transmitter, then current index is the first one
         if (new Date(settings.currentTimestamp) < new Date(transmitter_data.minTimestamp) ) {
             settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = 0;
-            //console.log(transmitter_id + " found minimum index = 0 for time " + settings.currentTimestamp);
             continue;
         }
 
         //current timestamp is higher than the last date of the transmitter, then current index is the last one
         if (new Date(settings.currentTimestamp) > new Date(transmitter_data.maxTimestamp) ) {
             settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = transmitter_data.geoPoints.length-1;
-            //console.log(transmitter_id + " found maximum index = " + (transmitter_data.geoPoints.length-1) + " for time " + settings.currentTimestamp);
             continue;
         }
 
         if (new Date(oldTimestamp) > new Date(settings.currentTimestamp)) {     //timeline went back
-            console.log(transmitter_id + " with previous index = " + settings.filteredDataPoints[transmitter_id].currentGeoPointIndex + " at timestamp = " + settings.currentTimestamp);
             for (let i = settings.filteredDataPoints[transmitter_id].currentGeoPointIndex; i >= 0; i--) {
                 if (new Date(transmitter_data.geoPoints[i].timestamp) < new Date(settings.currentTimestamp)) {
                     settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = i;
-                    //console.log(transmitter_id + " found index = " + i + " at timestamp = " + transmitter_data.geoPoints[i].timestamp);
                     placeMarker(transmitter_id, transmitter_data);
                     break;
                 }
@@ -620,7 +601,6 @@ function findCurrentTimeMarkers(oldTimestamp) {
             for (let i = settings.filteredDataPoints[transmitter_id].currentGeoPointIndex; i < settings.filteredDataPoints[transmitter_id].geoPoints.length; i++) {
                 if (new Date(transmitter_data.geoPoints[i].timestamp) > new Date(settings.currentTimestamp)) {
                     settings.filteredDataPoints[transmitter_id].currentGeoPointIndex = i;
-                    //console.log("Found index = " + i + " at timestamp = " + transmitter_data.geoPoints[i].timestamp);
                     placeMarker(transmitter_id, transmitter_data);
                     break;
                 }
@@ -634,8 +614,6 @@ function placeMarker(transmitter_id, transmitter_data) {
 
     let incrementedDate = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, settings.timelineTimeOffset);
     let decreasedDate = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex].timestamp, -settings.timelineTimeOffset);
-
-    //console.log(transmitter_id + " with decreased date: " + decreasedDate.toISOString() + " and increased date: " + incrementedDate.toISOString());
 
     //if transmitter is outside timeline range
     if (new Date(incrementedDate) < new Date(settings.currentTimestamp) || new Date(decreasedDate) > new Date(settings.currentTimestamp)) {
@@ -663,7 +641,6 @@ function placeMarker(transmitter_id, transmitter_data) {
     }
 
     if (enlargedRadius) {
-        console.log("enlarged!");
         return;
     }
 
@@ -681,8 +658,6 @@ function placeMarker(transmitter_id, transmitter_data) {
 }
 
 function placeMarkers() {
-    console.log(settings.filteredDataPoints);
-
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
 
         deleteMarker(transmitter_id, transmitter_data);
@@ -740,7 +715,6 @@ function placeMarkers() {
 
 function playAnimation() {
     advanceTime();
-    //console.log(settings.filteredDataPoints);
 
     for (const [transmitter_id, transmitter_data] of Object.entries(settings.filteredDataPoints)) {
         //if (transmitter_id === "A69-1602-26317") {
@@ -767,14 +741,12 @@ function beginDelayedAnimation(transmitter_id, transmitter_data) {
             let dateBackwards = addtoDate(transmitter_data.geoPoints[transmitter_data.currentGeoPointIndex+1].timestamp, -settings.timelineTimeOffset);
 
             if (new Date(dateForward) > new Date(settings.currentTimestamp) && new Date(dateBackwards) < new Date(settings.currentTimestamp)) {
-                //console.log(transmitter_id + " now beginning animation after delay at " + settings.currentTimestamp);
                 playAnimationAux(transmitter_id, transmitter_data);
                 return;
             }
         }
 
         setTimeout(function(){
-            //console.log(transmitter_id + " delayed for another day, from " + settings.currentTimestamp);
             beginDelayedAnimation(transmitter_id, transmitter_data);
         }, settings.timeFactor * 1000);
     }
@@ -782,17 +754,12 @@ function beginDelayedAnimation(transmitter_id, transmitter_data) {
 
 function playAnimationAux(transmitter_id, transmitter_data) {
 
-    /*if (transmitter_id === "A69-1601-43262") {
-        debugger;
-    }*/
-
     if (transmitter_data.geoPoints.length <= transmitter_data.currentGeoPointIndex+1) {
         //reached end
         if (transmitter_data.marker != null) {
             transmitter_data.marker.remove();
             transmitter_data.marker = null;
         }
-        //console.log(transmitter_id + " reaching end at " + settings.currentTimestamp);
         return;
     }
 
@@ -835,7 +802,6 @@ function playAnimationAux(transmitter_id, transmitter_data) {
             if (transmitter_data.currentGeoPointIndex >= transmitter_data.geoPoints.length) {
                 transmitter_data.currentGeoPointIndex = transmitter_data.geoPoints.length - 1;
             }
-            //console.log("from general incremented " + transmitter_id + " at " + settings.currentTimestamp);
 
             playAnimationAux(transmitter_id, transmitter_data);
         }, speed * 1000);
@@ -873,7 +839,6 @@ function playAnimationHours(transmitter_id, transmitter_data) {
         if (transmitter_data.currentGeoPointIndex >= transmitter_data.geoPoints.length) {
             transmitter_data.currentGeoPointIndex = transmitter_data.geoPoints.length - 1;
         }
-        //console.log("from hours incremented " + transmitter_id + " at " + settings.currentTimestamp);
         playAnimationAux(transmitter_id, transmitter_data);
     }, 1000 * settings.timeFactor * diffDays);
 }
