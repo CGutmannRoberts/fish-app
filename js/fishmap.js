@@ -157,6 +157,7 @@ var settings = {
             settings.currentTimestamp = newDate.toISOString().split("T")[0];
             let slider = document.getElementById('noui-slider');
             slider.noUiSlider.set([null, newDate.getTime(), null]);
+            slider.noUiSlider.set([null, newDate.getTime(), null]);
 
             //console.log("Clicking backwards. Current timetamp: " + settings.currentTimestamp);
         });
@@ -757,7 +758,7 @@ function playAnimation() {
 }
 
 function beginDelayedAnimation(transmitter_id, transmitter_data) {
-    if (settings.playingAnimation) {
+    if (settings.playingAnimation && transmitter_id in settings.filteredDataPoints) {
         if (new Date(transmitter_data.maxTimestamp) > new Date(settings.currentTimestamp) &&
             new Date(transmitter_data.minTimestamp) < new Date(settings.currentTimestamp) &&
             transmitter_data.geoPoints.length <= transmitter_data.currentGeoPointIndex+1) {
@@ -804,7 +805,7 @@ function playAnimationAux(transmitter_id, transmitter_data) {
         return;
     }
 
-    if (settings.playingAnimation) {
+    if (settings.playingAnimation && transmitter_id in settings.filteredDataPoints) {
 
         //remove current marker
         deleteMarker(transmitter_id, transmitter_data);
@@ -1117,9 +1118,9 @@ function getTransmitterColor(species) {
         case "Sea lamprey":
             return settings.colorSeaLamprey;
         case "Barbel":
-            return settings.colorBarbel
+            return settings.colorBarbel;
         case "Zander":
-            return settings.colorZander
+            return settings.colorZander;
         case "Twaite shad":
             return settings.colorShad;
     }
@@ -1163,9 +1164,9 @@ function getFishIcon(species) {
         case "Sea lamprey":
             return settings.iconSeaLamprey;
         case "Barbel":
-            return settings.iconBarbel
+            return settings.iconBarbel;
         case "Zander":
-            return settings.iconZander
+            return settings.iconZander;
         case "Twaite shad":
             return settings.iconShad;
     }
@@ -1245,37 +1246,37 @@ function getMovingMarkerIcon(current_icon, mirrored) {
     switch (species) {
         case "shad":
             if (mirrored) {
-                iconURL = "media/icon_mirror_shad.png"
+                iconURL = "media/icon_mirror_shad.png";
             } else {
-                iconURL = "media/icon_shad.png"
+                iconURL = "media/icon_shad.png";
             }
             break;
         case "pike":
             if (mirrored) {
-                iconURL = "media/icon_mirror_pike.png"
+                iconURL = "media/icon_mirror_pike.png";
             } else {
-                iconURL = "media/icon_pike.png"
+                iconURL = "media/icon_pike.png";
             }
             break;
         case "zander":
             if (mirrored) {
-                iconURL = "media/icon_mirror_zander.png"
+                iconURL = "media/icon_mirror_zander.png";
             } else {
-                iconURL = "media/icon_zander.png"
+                iconURL = "media/icon_zander.png";
             }
             break;
         case "barbel":
             if (mirrored) {
-                iconURL = "media/icon_mirror_barbel.png"
+                iconURL = "media/icon_mirror_barbel.png";
             } else {
-                iconURL = "media/icon_barbel.png"
+                iconURL = "media/icon_barbel.png";
             }
             break;
         case "lamprey":
             if (mirrored) {
-                iconURL = "media/icon_mirror_lamprey.png"
+                iconURL = "media/icon_mirror_lamprey.png";
             } else {
-                iconURL = "media/icon_lamprey.png"
+                iconURL = "media/icon_lamprey.png";
             }
             break;
     }
